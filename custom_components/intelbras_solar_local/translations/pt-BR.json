@@ -1,0 +1,170 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Intelbras Solar Local",
+        "description": "Conecte ao datalogger WiNet-S do seu inversor Intelbras na rede local. O inversor precisa estar ligado (de dia) para ser adicionado.",
+        "data": {
+          "name": "Nome",
+          "host": "Endereço IP do datalogger",
+          "port": "Porta Modbus TCP",
+          "unit": "Endereço Modbus (unit id)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Não foi possível ler o inversor. Confira o IP e se o inversor está ligado."
+    },
+    "abort": {
+      "already_configured": "Esse inversor já está configurado."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opções do Intelbras Solar Local",
+        "data": {
+          "scan_interval": "Intervalo de atualização (segundos)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "ac_power": {
+        "name": "Potência AC"
+      },
+      "dc_power": {
+        "name": "Potência DC"
+      },
+      "apparent_power": {
+        "name": "Potência aparente"
+      },
+      "reactive_power": {
+        "name": "Potência reativa"
+      },
+      "power_factor": {
+        "name": "Fator de potência"
+      },
+      "energy_today": {
+        "name": "Energia hoje"
+      },
+      "energy_month": {
+        "name": "Energia no mês"
+      },
+      "energy_year": {
+        "name": "Energia no ano"
+      },
+      "energy_total": {
+        "name": "Energia total"
+      },
+      "mppt1_power": {
+        "name": "MPPT1 potência"
+      },
+      "mppt1_voltage": {
+        "name": "MPPT1 tensão"
+      },
+      "mppt1_current": {
+        "name": "MPPT1 corrente"
+      },
+      "mppt2_power": {
+        "name": "MPPT2 potência"
+      },
+      "mppt2_voltage": {
+        "name": "MPPT2 tensão"
+      },
+      "mppt2_current": {
+        "name": "MPPT2 corrente"
+      },
+      "grid_voltage": {
+        "name": "Tensão da rede"
+      },
+      "grid_current": {
+        "name": "Corrente da rede"
+      },
+      "grid_frequency": {
+        "name": "Frequência da rede"
+      },
+      "temperature": {
+        "name": "Temperatura interna"
+      },
+      "work_state": {
+        "name": "Estado",
+        "state": {
+          "running": "Gerando",
+          "stopped": "Parado",
+          "key_stop": "Parado por comando",
+          "emergency_stop": "Parada de emergência",
+          "standby": "Standby",
+          "initial_standby": "Standby inicial",
+          "starting": "Iniciando",
+          "alarm_run": "Gerando com alarme",
+          "derating_run": "Gerando com limitação",
+          "dispatch_run": "Gerando sob despacho",
+          "fault": "Falha",
+          "communication_fault": "Falha de comunicação",
+          "unknown": "Desconhecido"
+        }
+      },
+      "bus_voltage": {
+        "name": "Tensão do barramento"
+      },
+      "insulation_resistance": {
+        "name": "Resistência de isolamento"
+      },
+      "fault_code": {
+        "name": "Código de falha"
+      },
+      "active_alarms": {
+        "name": "Alarmes ativos"
+      },
+      "running_time_today": {
+        "name": "Tempo gerando hoje"
+      },
+      "running_time_total": {
+        "name": "Tempo gerando total"
+      },
+      "nominal_power": {
+        "name": "Potência nominal"
+      },
+      "inverter_clock": {
+        "name": "Relógio do inversor"
+      }
+    },
+    "binary_sensor": {
+      "online": {
+        "name": "Online"
+      },
+      "producing": {
+        "name": "Gerando"
+      },
+      "fault": {
+        "name": "Falha"
+      },
+      "datalogger_wifi": {
+        "name": "Datalogger Wi-Fi"
+      },
+      "datalogger_cloud": {
+        "name": "Datalogger nuvem"
+      }
+    },
+    "switch": {
+      "inverter_on": {
+        "name": "Inversor ligado"
+      },
+      "power_limit_enabled": {
+        "name": "Limitação de potência"
+      }
+    },
+    "number": {
+      "power_limit": {
+        "name": "Limite de potência"
+      }
+    },
+    "button": {
+      "sync_clock": {
+        "name": "Sincronizar relógio do inversor"
+      }
+    }
+  }
+}

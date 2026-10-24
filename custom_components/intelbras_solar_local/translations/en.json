@@ -1,0 +1,170 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Intelbras Solar Local",
+        "description": "Connect to the WiNet-S datalogger of your Intelbras inverter on the local network. The inverter must be on (daytime) to be added.",
+        "data": {
+          "name": "Name",
+          "host": "Datalogger IP address",
+          "port": "Modbus TCP port",
+          "unit": "Modbus unit id"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to read the inverter. Check the IP and that the inverter is on."
+    },
+    "abort": {
+      "already_configured": "This inverter is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Intelbras Solar Local options",
+        "data": {
+          "scan_interval": "Scan interval (seconds)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "ac_power": {
+        "name": "AC power"
+      },
+      "dc_power": {
+        "name": "DC power"
+      },
+      "apparent_power": {
+        "name": "Apparent power"
+      },
+      "reactive_power": {
+        "name": "Reactive power"
+      },
+      "power_factor": {
+        "name": "Power factor"
+      },
+      "energy_today": {
+        "name": "Energy today"
+      },
+      "energy_month": {
+        "name": "Energy this month"
+      },
+      "energy_year": {
+        "name": "Energy this year"
+      },
+      "energy_total": {
+        "name": "Total energy"
+      },
+      "mppt1_power": {
+        "name": "MPPT1 power"
+      },
+      "mppt1_voltage": {
+        "name": "MPPT1 voltage"
+      },
+      "mppt1_current": {
+        "name": "MPPT1 current"
+      },
+      "mppt2_power": {
+        "name": "MPPT2 power"
+      },
+      "mppt2_voltage": {
+        "name": "MPPT2 voltage"
+      },
+      "mppt2_current": {
+        "name": "MPPT2 current"
+      },
+      "grid_voltage": {
+        "name": "Grid voltage"
+      },
+      "grid_current": {
+        "name": "Grid current"
+      },
+      "grid_frequency": {
+        "name": "Grid frequency"
+      },
+      "temperature": {
+        "name": "Internal temperature"
+      },
+      "work_state": {
+        "name": "Work state",
+        "state": {
+          "running": "Running",
+          "stopped": "Stopped",
+          "key_stop": "Stopped by command",
+          "emergency_stop": "Emergency stop",
+          "standby": "Standby",
+          "initial_standby": "Initial standby",
+          "starting": "Starting",
+          "alarm_run": "Running with alarm",
+          "derating_run": "Derating",
+          "dispatch_run": "Dispatch run",
+          "fault": "Fault",
+          "communication_fault": "Communication fault",
+          "unknown": "Unknown"
+        }
+      },
+      "bus_voltage": {
+        "name": "Bus voltage"
+      },
+      "insulation_resistance": {
+        "name": "Insulation resistance"
+      },
+      "fault_code": {
+        "name": "Fault code"
+      },
+      "active_alarms": {
+        "name": "Active alarms"
+      },
+      "running_time_today": {
+        "name": "Running time today"
+      },
+      "running_time_total": {
+        "name": "Total running time"
+      },
+      "nominal_power": {
+        "name": "Nominal power"
+      },
+      "inverter_clock": {
+        "name": "Inverter clock"
+      }
+    },
+    "binary_sensor": {
+      "online": {
+        "name": "Online"
+      },
+      "producing": {
+        "name": "Producing"
+      },
+      "fault": {
+        "name": "Fault"
+      },
+      "datalogger_wifi": {
+        "name": "Datalogger Wi-Fi"
+      },
+      "datalogger_cloud": {
+        "name": "Datalogger cloud"
+      }
+    },
+    "switch": {
+      "inverter_on": {
+        "name": "Inverter on"
+      },
+      "power_limit_enabled": {
+        "name": "Power limitation"
+      }
+    },
+    "number": {
+      "power_limit": {
+        "name": "Power limit"
+      }
+    },
+    "button": {
+      "sync_clock": {
+        "name": "Sync inverter clock"
+      }
+    }
+  }
+}
