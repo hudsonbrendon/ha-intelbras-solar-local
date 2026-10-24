@@ -10,14 +10,23 @@
           "port": "Porta Modbus TCP",
           "unit": "Endereço Modbus (unit id)"
         }
+      },
+      "discovery_confirm": {
+        "title": "Inversor Intelbras encontrado",
+        "description": "Adicionar o inversor {model} encontrado em {host}?",
+        "data": {
+          "name": "Nome"
+        }
       }
     },
     "error": {
       "cannot_connect": "Não foi possível ler o inversor. Confira o IP e se o inversor está ligado."
     },
     "abort": {
-      "already_configured": "Esse inversor já está configurado."
-    }
+      "already_configured": "Esse inversor já está configurado.",
+      "cannot_connect": "Datalogger WiNet-S encontrado, mas não foi possível ler o inversor (ele desliga à noite)."
+    },
+    "flow_title": "{name}"
   },
   "options": {
     "step": {

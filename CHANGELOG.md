@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [0.2.0]
+
+### Added
+- Zeroconf discovery. The WiNet-S datalogger announces
+  `WiNet-WebServer._http._tcp.local.` with TXT `board=WiNet-S`, so Home
+  Assistant now offers to add the inverter without typing an IP. The flow reads
+  the inverter serial over Modbus to use as the unique id. When the datalogger
+  gets a new IP from DHCP, the existing entry is updated to it automatically.
+
 ## [0.1.2]
 
 ### Fixed

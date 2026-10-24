@@ -8,5 +8,14 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/hudsonbrendon/ha-intelbras-solar-local/issues",
   "requirements": ["python-intelbras-solar-local==0.1.1"],
-  "version": "0.1.2"
+  "version": "0.2.0",
+  "zeroconf": [
+    {
+      "type": "_http._tcp.local.",
+      "name": "winet-webserver*",
+      "properties": {
+        "board": "winet-s"
+      }
+    }
+  ]
 }

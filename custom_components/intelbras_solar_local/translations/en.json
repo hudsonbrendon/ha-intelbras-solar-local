@@ -10,14 +10,23 @@
           "port": "Modbus TCP port",
           "unit": "Modbus unit id"
         }
+      },
+      "discovery_confirm": {
+        "title": "Intelbras inverter found",
+        "description": "Add the {model} inverter discovered at {host}?",
+        "data": {
+          "name": "Name"
+        }
       }
     },
     "error": {
       "cannot_connect": "Failed to read the inverter. Check the IP and that the inverter is on."
     },
     "abort": {
-      "already_configured": "This inverter is already configured."
-    }
+      "already_configured": "This inverter is already configured.",
+      "cannot_connect": "Found a WiNet-S datalogger but could not read the inverter (it sleeps at night)."
+    },
+    "flow_title": "{name}"
   },
   "options": {
     "step": {

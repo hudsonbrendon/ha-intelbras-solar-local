@@ -37,6 +37,8 @@ or stop the inverter and set its power limit. There is no cloud and no account.
   - turn the inverter on or off;
   - turn power limitation on or off, and set the power limit (%);
   - sync the inverter clock with Home Assistant.
+- **Auto-discovery**: zeroconf picks up the WiNet-S on your network, and the entry follows the datalogger when its IP
+  changes.
 - **Night-aware**: the inverter powers down after sunset. The *Online* binary sensor then turns off and the other
   entities become unavailable. The log stays quiet overnight, and readings resume at sunrise.
 - **Diagnostics**: the integration provides a diagnostics download, with the serial number redacted.
@@ -94,6 +96,15 @@ integration itself only handles the Home Assistant side: the config flow, the co
 2. Restart Home Assistant.
 
 ## Setup
+
+### Automatic discovery
+
+The WiNet-S datalogger announces itself over mDNS (`WiNet-WebServer._http._tcp`, `board=WiNet-S`). After you install
+the integration, Home Assistant shows **Intelbras inverter found** under **Settings → Devices & Services**. Click
+**Configure**, choose a name, and you're done. If the datalogger later gets a new IP, the entry follows it
+automatically.
+
+### Manual
 
 1. Go to **Settings → Devices & Services → Add Integration → Intelbras Solar Local**.
 2. Enter the datalogger **IP address**. The defaults are Modbus port `502` and unit id `1`.
