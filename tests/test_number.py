@@ -20,6 +20,7 @@ async def test_power_limit(
         "number", "set_value", {"entity_id": ENTITY, "value": 80}, blocking=True
     )
     mock_client.async_set_power_limit.assert_awaited_once_with(80.0)
+    assert hass.states.get(ENTITY).state == "80.0"
 
 
 async def test_power_limit_write_error(
@@ -31,3 +32,4 @@ async def test_power_limit_write_error(
         await hass.services.async_call(
             "number", "set_value", {"entity_id": ENTITY, "value": 50}, blocking=True
         )
+    assert hass.states.get(ENTITY).state == "100.0"

@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import replace
 from datetime import timedelta
+from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -47,3 +49,12 @@ class IntelbrasSolarCoordinator(DataUpdateCoordinator[InverterStatus]):
         except IntelbrasSolarError as err:
             _LOGGER.debug("Inverter unreachable: %s", err)
             return InverterStatus(online=False)
+
+    def async_set_written(self, **fields: Any) -> None:
+        """Show a successful write right away.
+
+        The WiNet-S takes about a second to reflect a holding-register write, so
+        an immediate refresh reads the old value (and the debouncer then holds
+        further refreshes). The next scheduled poll confirms the new value.
+        """
+        self.async_set_updated_data(replace(self.data, **fields))

@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [0.1.1]
+
+### Fixed
+- Controls (inverter on/off, power limitation, power limit, clock sync) showed the old
+  value after a successful write. The WiNet-S takes about a second to reflect a
+  holding-register write, so the immediate refresh read the previous value and the
+  debouncer then held further refreshes. Entities now update optimistically on a
+  successful write, and the next scheduled poll confirms the value. Verified on the
+  real IONS-5K M5.
+
 ## [0.1.0]
 
 ### Added

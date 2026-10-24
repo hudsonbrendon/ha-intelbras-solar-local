@@ -27,6 +27,7 @@ from .entity import IntelbrasSolarEntity
 
 @dataclass(frozen=True, kw_only=True)
 class IntelbrasSolarSwitchEntityDescription(SwitchEntityDescription):
+    field: str
     value_fn: Callable[[InverterStatus], bool | None]
     set_fn: Callable[[IntelbrasSolarClient, bool], Awaitable[None]]
 
@@ -38,6 +39,7 @@ SWITCHES: tuple[IntelbrasSolarSwitchEntityDescription, ...] = (
         icon="mdi:power",
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
+        field="inverter_on",
         value_fn=lambda s: s.inverter_on,
         set_fn=lambda c, on: c.async_set_inverter_on(on),
     ),
@@ -47,6 +49,7 @@ SWITCHES: tuple[IntelbrasSolarSwitchEntityDescription, ...] = (
         icon="mdi:speedometer",
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
+        field="power_limit_enabled",
         value_fn=lambda s: s.power_limit_enabled,
         set_fn=lambda c, on: c.async_set_power_limit_enabled(on),
     ),
@@ -89,4 +92,4 @@ class IntelbrasSolarSwitch(IntelbrasSolarEntity, SwitchEntity):
             await self.entity_description.set_fn(self.coordinator.client, value)
         except IntelbrasSolarError as err:
             raise HomeAssistantError(f"Failed to write to the inverter: {err}") from err
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_set_written(**{self.entity_description.field: value})

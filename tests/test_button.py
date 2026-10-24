@@ -16,3 +16,5 @@ async def test_sync_clock(
     (when,), _ = mock_client.async_set_clock.call_args
     assert isinstance(when, datetime)
     assert when.tzinfo is None and when.microsecond == 0
+    clock = hass.states.get("sensor.intelbras_solar_local_inverter_clock").state
+    assert clock == when.isoformat(sep=" ")

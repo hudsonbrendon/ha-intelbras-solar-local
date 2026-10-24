@@ -46,4 +46,4 @@ class IntelbrasSolarPowerLimit(IntelbrasSolarEntity, NumberEntity):
             await self.coordinator.client.async_set_power_limit(value)
         except IntelbrasSolarError as err:
             raise HomeAssistantError(f"Failed to write to the inverter: {err}") from err
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_set_written(power_limit=value)

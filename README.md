@@ -103,7 +103,8 @@ polling interval later under **Configure**.
 
 ## Entities
 
-Entity IDs follow the name you give the device (default `intelbras_solar_local`).
+Entity IDs follow the name you give the device (default `intelbras_solar_local`). They are generated in your Home
+Assistant language: in Portuguese, for example, `sensor.<name>_potencia_ac`. The tables below use the English IDs.
 
 ### Sensors
 

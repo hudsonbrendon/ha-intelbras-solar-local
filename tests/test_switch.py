@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import pytest
-from homeassistant.const import STATE_ON
+from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.exceptions import HomeAssistantError
 from intelbras_solar_local import IntelbrasSolarConnectionError
 
@@ -25,6 +25,8 @@ async def test_switches_write_inverter(
         "switch", "turn_off", {"entity_id": P + "inverter_on"}, blocking=True
     )
     mock_client.async_set_inverter_on.assert_awaited_once_with(False)
+    # Optimistic: shows the write before the next poll confirms it.
+    assert hass.states.get(P + "inverter_on").state == STATE_OFF
     await hass.services.async_call(
         "switch", "turn_on", {"entity_id": P + "power_limitation"}, blocking=True
     )

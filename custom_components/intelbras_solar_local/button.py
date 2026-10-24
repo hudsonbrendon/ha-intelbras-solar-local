@@ -38,4 +38,4 @@ class IntelbrasSolarSyncClock(IntelbrasSolarEntity, ButtonEntity):
             await self.coordinator.client.async_set_clock(now)
         except IntelbrasSolarError as err:
             raise HomeAssistantError(f"Failed to write to the inverter: {err}") from err
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_set_written(clock=now)
