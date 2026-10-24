@@ -151,6 +151,9 @@ latest inverter snapshot, with the serial number redacted.
 
 - **LAN only, no auth**: Modbus TCP and the datalogger WebSocket accept any client on the network by design. Keep the
   datalogger on a trusted network.
+- **One Modbus client at a time**: the WiNet-S times out when several Modbus clients poll it together. Keep this
+  integration as the only Modbus TCP client; the Intelbras cloud and app are unaffected. Single failed polls are
+  tolerated: the inverter is reported offline only after 3 failures in a row.
 - **Yearly energy** comes from a register whose meaning is inferred. It tracks the cloud's yearly value closely but not
   exactly.
 - **Two MPPTs**: only two are exposed, as on the IONS-5K M5. Open an issue if your model has three.

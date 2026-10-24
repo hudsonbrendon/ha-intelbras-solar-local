@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here.
 
+## [0.1.2]
+
+### Fixed
+- A poll that was already in flight when a control was written could bring the
+  old value back about 0.1 s later. This was seen on the real power limit:
+  100 → 90 → 100. For 3 s after a write, fields written by the controls now
+  override whatever a poll reads.
+- A single failed poll no longer marks the inverter offline and flips every
+  entity to unavailable. The last reading is kept until 3 polls fail in a row.
+
+### Changed
+- Requires `python-intelbras-solar-local` 0.1.1. It raises
+  `IntelbrasSolarProtocolError` on malformed Modbus frames instead of a bare
+  `IndexError`, and starts transaction ids at random.
+
 ## [0.1.1]
 
 ### Fixed
