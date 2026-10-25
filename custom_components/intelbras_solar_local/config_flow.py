@@ -17,8 +17,14 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from intelbras_solar_local import IntelbrasSolarClient, IntelbrasSolarError
 
 from .const import (
+    CONF_CO2_FACTOR,
+    CONF_ENERGY_PRICE,
+    CONF_INSTALLED_CAPACITY,
     CONF_SCAN_INTERVAL,
     CONF_UNIT,
+    DEFAULT_CO2_FACTOR,
+    DEFAULT_ENERGY_PRICE,
+    DEFAULT_INSTALLED_CAPACITY,
     DEFAULT_NAME,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
@@ -130,7 +136,7 @@ class IntelbrasSolarConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class IntelbrasSolarOptionsFlow(OptionsFlow):
-    """Handle Intelbras Solar Local options (scan interval)."""
+    """Handle Intelbras Solar Local options (scan interval, plant settings)."""
 
     def __init__(self, config_entry: ConfigEntry) -> None:
         self._entry = config_entry
@@ -140,12 +146,29 @@ class IntelbrasSolarOptionsFlow(OptionsFlow):
     ) -> ConfigFlowResult:
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
-        current = self._entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+        opts = self._entry.options
         schema = vol.Schema(
             {
-                vol.Optional(CONF_SCAN_INTERVAL, default=current): vol.All(
+                vol.Optional(
+                    CONF_SCAN_INTERVAL,
+                    default=opts.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+                ): vol.All(
                     int, vol.Range(min=MIN_SCAN_INTERVAL, max=MAX_SCAN_INTERVAL)
                 ),
+                vol.Optional(
+                    CONF_ENERGY_PRICE,
+                    default=opts.get(CONF_ENERGY_PRICE, DEFAULT_ENERGY_PRICE),
+                ): vol.All(vol.Coerce(float), vol.Range(min=0, max=100)),
+                vol.Optional(
+                    CONF_INSTALLED_CAPACITY,
+                    default=opts.get(
+                        CONF_INSTALLED_CAPACITY, DEFAULT_INSTALLED_CAPACITY
+                    ),
+                ): vol.All(vol.Coerce(float), vol.Range(min=0, max=10000)),
+                vol.Optional(
+                    CONF_CO2_FACTOR,
+                    default=opts.get(CONF_CO2_FACTOR, DEFAULT_CO2_FACTOR),
+                ): vol.All(vol.Coerce(float), vol.Range(min=0, max=5)),
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema)

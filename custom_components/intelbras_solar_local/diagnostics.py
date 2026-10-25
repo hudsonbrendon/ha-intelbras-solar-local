@@ -26,6 +26,16 @@ async def async_get_config_entry_diagnostics(
             "options": dict(entry.options),
         },
         "status": async_redact_data(asdict(data), TO_REDACT) if data else None,
+        "datalogger_info": async_redact_data(
+            asdict(coordinator.datalogger_info), TO_REDACT
+        )
+        if coordinator.datalogger_info
+        else None,
+        "wifi_signal": asdict(coordinator.wifi_signal)
+        if coordinator.wifi_signal
+        else None,
+        "grid_parameters": [asdict(p) for p in coordinator.grid_parameters],
+        "last_record": coordinator.last_record,
         "derived": {
             "model": data.model,
             "work_state": data.work_state,

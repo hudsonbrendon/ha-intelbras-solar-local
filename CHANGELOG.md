@@ -2,6 +2,35 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.0]
+
+### Added
+- Entities are split across three devices, matching the Intelbras cloud
+  integration: **Inverter**, **Datalogger** (WiNet-S) and **Plant**. The
+  inverter keeps its identifier, so existing entities stay where they are. The
+  datalogger connectivity sensors move to the Datalogger device.
+- Inverter: efficiency (AC/DC %), ARM and DSP firmware versions (the ARM
+  version also shows on the device page), and grid protection levels. Grid
+  protection carries the 29 over/under-voltage and frequency thresholds and
+  trip times as attributes.
+- Datalogger: Wi-Fi signal (dBm) and network, firmware, hardware version,
+  cloud server, Ethernet link (disabled by default), and a last record
+  timestamp that stays available overnight.
+- Plant (calculated):
+  - savings today, this month, this year and in total (BRL);
+  - CO2 avoided, trees saved and coal saved;
+  - specific yield today (kWh/kWp) and utilization (%);
+  - peak power today, restored after a restart on the same day;
+  - installed capacity, energy price and plant status (normal / fault / offline).
+- Options: energy price (BRL/kWh), installed capacity (kWp; defaults to the
+  inverter rating) and CO2 factor. The default CO2 factor is the one the
+  Intelbras app uses, so the numbers match.
+- The datalogger identity, the Wi-Fi signal (a ~3 s station scan) and the grid
+  parameters refresh every 10 minutes, best-effort.
+
+### Changed
+- Requires `python-intelbras-solar-local` 0.2.0.
+
 ## [0.2.0]
 
 ### Added

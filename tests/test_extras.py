@@ -1,0 +1,87 @@
+"""Tests for the datalogger extras, firmware and grid protection sensors."""
+from __future__ import annotations
+
+from datetime import timedelta
+
+from homeassistant.const import STATE_UNAVAILABLE
+from homeassistant.util import dt as dt_util
+from intelbras_solar_local import InverterStatus, WifiSignal
+
+from custom_components.intelbras_solar_local import coordinator as coord_mod
+
+D = "sensor.intelbras_solar_local_datalogger_"
+INV = "sensor.intelbras_solar_local_"
+
+
+async def test_datalogger_sensors(hass, init_integration):
+    await init_integration()
+    signal = hass.states.get(D + "wi_fi_signal")
+    assert signal.state == "-36"
+    assert signal.attributes["unit_of_measurement"] == "dBm"
+    assert hass.states.get(D + "wi_fi_network").state == "CASA"
+    assert hass.states.get(D + "firmware").state == "WIFI-SV300.001.03.P002"
+    assert hass.states.get(D + "hardware_version").state == "M_WI-FI_V01_V01_A"
+    assert hass.states.get(D + "cloud_server").state == "app.isolarcloud.com"
+    assert hass.states.get(D + "last_record").state != "unknown"
+
+
+async def test_inverter_firmware_efficiency_and_grid(hass, init_integration):
+    await init_integration()
+    assert hass.states.get(INV + "arm_firmware").state == "ARM_SUNSTONE-S_V11_V01_A"
+    assert hass.states.get(INV + "dsp_firmware").state == "MDSP_SUNSTONE-S_V11_V01_A"
+    assert hass.states.get(INV + "inverter_efficiency").state == "94.1"
+    grid = hass.states.get(INV + "grid_protection_levels")
+    assert grid.state == "3"
+    assert grid.attributes["overvoltage_single_protect_value"] == 268.8
+
+
+async def test_slow_extras_are_throttled(hass, init_integration, mock_client):
+    _, coordinator = await init_integration()
+    assert mock_client.async_get_wifi_signal.await_count == 1
+    await coordinator.async_refresh()
+    assert mock_client.async_get_wifi_signal.await_count == 1
+
+    later = dt_util.utcnow() + coord_mod.SLOW_EXTRAS_INTERVAL + timedelta(seconds=1)
+    mock_client.async_get_wifi_signal.return_value = WifiSignal("CASA", -50)
+    with _frozen(later):
+        await coordinator.async_refresh()
+    assert mock_client.async_get_wifi_signal.await_count == 2
+    assert coordinator.wifi_signal.rssi == -50
+
+
+async def test_extras_failure_keeps_previous_value(hass, init_integration, mock_client):
+    from intelbras_solar_local import IntelbrasSolarConnectionError
+
+    _, coordinator = await init_integration()
+    mock_client.async_get_wifi_signal.side_effect = IntelbrasSolarConnectionError("x")
+    later = dt_util.utcnow() + coord_mod.SLOW_EXTRAS_INTERVAL + timedelta(seconds=1)
+    with _frozen(later):
+        await coordinator.async_refresh()
+    assert coordinator.data.online is True
+    assert coordinator.wifi_signal.rssi == -36
+
+
+async def test_last_record_survives_night(hass, init_integration, mock_client):
+    from intelbras_solar_local import IntelbrasSolarConnectionError
+
+    _, coordinator = await init_integration()
+    mock_client.async_get_status.side_effect = IntelbrasSolarConnectionError("x")
+    for _ in range(3):
+        await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    last = hass.states.get(D + "last_record").state
+    assert last not in ("unknown", STATE_UNAVAILABLE)
+    assert hass.states.get(D + "wi_fi_signal").state == STATE_UNAVAILABLE
+
+
+async def test_grid_levels_unknown_without_params(hass, init_integration, mock_client):
+    mock_client.async_get_grid_parameters.return_value = []
+    await init_integration(status=None)
+    assert hass.states.get(INV + "grid_protection_levels").state == "unknown"
+    _ = InverterStatus
+
+
+def _frozen(when):
+    from unittest.mock import patch
+
+    return patch.object(coord_mod.dt_util, "utcnow", return_value=when)

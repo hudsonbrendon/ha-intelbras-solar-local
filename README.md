@@ -32,7 +32,17 @@ or stop the inverter and set its power limit. There is no cloud and no account.
   - fault code;
   - a fault binary sensor that carries the active fault list from the datalogger;
   - the number of active alarms.
-- **Datalogger**: binary sensors for the Wi-Fi link and the Intelbras cloud link.
+- **Three devices**, split the same way as the Intelbras cloud integration: **Inverter**, **Datalogger** and **Plant**.
+- **Inverter extras**: efficiency (AC/DC), ARM and DSP firmware, and the grid-protection settings. The settings cover
+  the over/under-voltage and frequency thresholds per level and their trip times.
+- **Datalogger**: Wi-Fi signal (dBm) and network, Wi-Fi, cloud and Ethernet links, firmware and hardware versions,
+  cloud server, and the time of the last record.
+- **Plant (calculated)**:
+  - savings in R$ today, this month, this year and in total;
+  - CO₂ avoided, trees saved and coal saved;
+  - specific yield (kWh/kWp) and utilization (%);
+  - peak power of the day;
+  - installed capacity, energy price and plant status.
 - **Controls** (disabled by default):
   - turn the inverter on or off;
   - turn power limitation on or off, and set the power limit (%);
@@ -47,8 +57,8 @@ or stop the inverter and set its power limit. There is no cloud and no account.
 ## Comparison with the cloud integration
 
 [Solar Plus Intelbras](https://github.com/hudsonbrendon/HA-solar-plus-intelbras) reads the Intelbras cloud. That
-integration adds savings in R$, CO₂ avoided and weather data. This integration reads the hardware directly, and the
-two can run side by side.
+integration's distinctive data is weather and the cloud alert history. This integration reads the hardware directly
+and calculates the plant figures locally. The two can run side by side.
 
 | | Solar Plus Intelbras (cloud) | Intelbras Solar Local |
 |---|---|---|
@@ -61,7 +71,11 @@ two can run side by side.
 | Grid voltage, current and frequency | ❌ | ✅ |
 | Bus voltage, insulation resistance, fault code | ❌ | ✅ |
 | Start/stop, power limit, clock sync | ❌ | ✅ |
-| Savings (R$), CO₂, weather | ✅ | ❌ |
+| Savings (R$), CO₂, trees, coal, capacity, energy price | ✅ | ✅ (calculated locally) |
+| Datalogger firmware, Wi-Fi signal | ✅ | ✅ |
+| Inverter firmware (ARM/DSP), efficiency, grid-protection settings | ❌ | ✅ |
+| Specific yield, utilization, peak power of the day | ❌ | ✅ |
+| Weather, cloud alert history | ✅ | ❌ |
 
 ## Architecture
 
@@ -109,8 +123,18 @@ automatically.
 1. Go to **Settings → Devices & Services → Add Integration → Intelbras Solar Local**.
 2. Enter the datalogger **IP address**. The defaults are Modbus port `502` and unit id `1`.
 
-Add the integration during the day. At night the inverter is off and the connection test fails. You can change the
-polling interval later under **Configure**.
+Add the integration during the day. At night the inverter is off and the connection test fails.
+
+### Options
+
+Open **Configure** on the integration to set:
+
+| Option | Default | Used by |
+|---|---|---|
+| Scan interval | 15 s | Every reading |
+| Energy price (R$/kWh) | 0, which leaves the savings sensors unknown | Savings sensors |
+| Installed capacity (kWp) | 0, which falls back to the inverter rating | Specific yield, utilization |
+| CO₂ avoided per kWh | 0.3406 kg, the factor the Intelbras app uses | CO₂, trees |
 
 ## Entities
 
@@ -132,6 +156,30 @@ Assistant language: in Portuguese, for example, `sensor.<name>_potencia_ac`. The
 | `sensor.<name>_running_time_today` / `_total_running_time` | Diagnostics |
 | `sensor.<name>_nominal_power` | Diagnostics (kW) |
 | `sensor.<name>_inverter_clock` | Diagnostics, disabled by default |
+| `sensor.<name>_inverter_efficiency` | AC output / DC input (%) |
+| `sensor.<name>_arm_firmware` / `_dsp_firmware` | Inverter firmware (diagnostics) |
+| `sensor.<name>_grid_protection_levels` | Number of protection levels. Attributes hold every threshold (V/Hz) and trip time (s) |
+
+### Datalogger sensors
+
+| Entity | Description |
+|--------|-------------|
+| `sensor.<name>_datalogger_wi_fi_signal` / `_wi_fi_network` | RSSI (dBm) and SSID. Refreshed every 10 min with a ~3 s station scan |
+| `sensor.<name>_datalogger_firmware` / `_hardware_version` | Datalogger versions |
+| `sensor.<name>_datalogger_cloud_server` | Server the datalogger reports to (`app.isolarcloud.com`) |
+| `sensor.<name>_datalogger_last_record` | Time of the last successful reading. Stays available overnight |
+
+### Plant sensors (calculated)
+
+| Entity | Description |
+|--------|-------------|
+| `sensor.<name>_plant_savings_today` / `_this_month` / `_this_year` / `_total_savings` | Energy × energy price (BRL) |
+| `sensor.<name>_plant_co2_avoided` / `_trees_saved` / `_coal_saved` | Lifetime energy × CO₂ factor; trees = t CO₂; coal = 0.4 kg/kWh |
+| `sensor.<name>_plant_specific_yield_today` | Energy today / installed capacity (kWh/kWp) |
+| `sensor.<name>_plant_utilization` | AC power / installed capacity (%) |
+| `sensor.<name>_plant_peak_power_today` | Highest AC power today, kept across restarts |
+| `sensor.<name>_plant_installed_capacity` / `_energy_price` | From the options |
+| `sensor.<name>_plant_status` | Normal / fault / offline |
 
 ### Binary sensors
 
@@ -140,7 +188,7 @@ Assistant language: in Portuguese, for example, `sensor.<name>_potencia_ac`. The
 | `binary_sensor.<name>_online` | On while the inverter answers; off at night |
 | `binary_sensor.<name>_producing` | On while feeding the grid |
 | `binary_sensor.<name>_fault` | Problem; attributes `fault_code` and `faults` (datalogger list) |
-| `binary_sensor.<name>_datalogger_wi_fi` / `_datalogger_cloud` | Datalogger connectivity |
+| `binary_sensor.<name>_datalogger_wi_fi` / `_datalogger_cloud` / `_datalogger_ethernet` | Datalogger links (Ethernet is disabled by default) |
 
 ### Controls (disabled by default)
 

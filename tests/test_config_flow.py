@@ -62,10 +62,16 @@ async def test_options_flow(hass, init_integration):
     result = await hass.config_entries.options.async_init(entry.entry_id)
     assert result["type"] is FlowResultType.FORM
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"scan_interval": 60}
+        result["flow_id"],
+        {"scan_interval": 60, "energy_price": 0.92, "installed_capacity": 5.5},
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert entry.options == {"scan_interval": 60}
+    assert entry.options == {
+        "scan_interval": 60,
+        "energy_price": 0.92,
+        "installed_capacity": 5.5,
+        "co2_factor": 0.3406,
+    }
 
 
 def _zeroconf_info(host="192.168.31.17"):

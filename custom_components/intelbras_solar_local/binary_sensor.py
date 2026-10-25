@@ -17,7 +17,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from intelbras_solar_local import InverterStatus
 
-from .const import DOMAIN
+from .const import DEVICE_DATALOGGER, DEVICE_INVERTER, DOMAIN
+from .coordinator import IntelbrasSolarCoordinator
 from .entity import IntelbrasSolarEntity
 
 
@@ -26,6 +27,8 @@ class IntelbrasSolarBinarySensorEntityDescription(BinarySensorEntityDescription)
     value_fn: Callable[[InverterStatus], bool | None]
     attrs_fn: Callable[[InverterStatus], dict[str, Any]] | None = None
     always_available: bool = False
+    device: str = DEVICE_INVERTER
+    coordinator_fn: Callable[[IntelbrasSolarCoordinator], bool | None] | None = None
 
 
 BINARY_SENSORS: tuple[IntelbrasSolarBinarySensorEntityDescription, ...] = (
@@ -55,6 +58,7 @@ BINARY_SENSORS: tuple[IntelbrasSolarBinarySensorEntityDescription, ...] = (
     IntelbrasSolarBinarySensorEntityDescription(
         key="datalogger_wifi",
         translation_key="datalogger_wifi",
+        device=DEVICE_DATALOGGER,
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda s: s.datalogger.wifi_connected if s.datalogger else None,
@@ -62,9 +66,22 @@ BINARY_SENSORS: tuple[IntelbrasSolarBinarySensorEntityDescription, ...] = (
     IntelbrasSolarBinarySensorEntityDescription(
         key="datalogger_cloud",
         translation_key="datalogger_cloud",
+        device=DEVICE_DATALOGGER,
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda s: s.datalogger.cloud_connected if s.datalogger else None,
+    ),
+    IntelbrasSolarBinarySensorEntityDescription(
+        key="datalogger_ethernet",
+        translation_key="datalogger_ethernet",
+        device=DEVICE_DATALOGGER,
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda s: None,
+        coordinator_fn=lambda c: (
+            c.datalogger_info.ethernet_connected if c.datalogger_info else None
+        ),
     ),
 )
 
@@ -87,7 +104,7 @@ class IntelbrasSolarBinarySensor(IntelbrasSolarEntity, BinarySensorEntity):
     entity_description: IntelbrasSolarBinarySensorEntityDescription
 
     def __init__(self, coordinator, entry, description) -> None:
-        super().__init__(coordinator, entry, description.key)
+        super().__init__(coordinator, entry, description.key, description.device)
         self.entity_description = description
 
     @property
@@ -98,6 +115,8 @@ class IntelbrasSolarBinarySensor(IntelbrasSolarEntity, BinarySensorEntity):
 
     @property
     def is_on(self) -> bool | None:
+        if self.entity_description.coordinator_fn is not None:
+            return self.entity_description.coordinator_fn(self.coordinator)
         return self.entity_description.value_fn(self.coordinator.data)
 
     @property

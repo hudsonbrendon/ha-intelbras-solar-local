@@ -33,8 +33,12 @@
       "init": {
         "title": "Intelbras Solar Local options",
         "data": {
-          "scan_interval": "Scan interval (seconds)"
-        }
+          "scan_interval": "Scan interval (seconds)",
+          "energy_price": "Energy price (BRL/kWh)",
+          "installed_capacity": "Installed capacity (kWp, 0 = inverter rating)",
+          "co2_factor": "CO2 avoided per kWh (kg)"
+        },
+        "description": "Savings sensors stay unknown until an energy price is set. The CO2 factor defaults to the one used by the Intelbras app."
       }
     }
   },
@@ -138,6 +142,80 @@
       },
       "inverter_clock": {
         "name": "Inverter clock"
+      },
+      "efficiency": {
+        "name": "Inverter efficiency"
+      },
+      "arm_firmware": {
+        "name": "ARM firmware"
+      },
+      "dsp_firmware": {
+        "name": "DSP firmware"
+      },
+      "grid_protection": {
+        "name": "Grid protection levels"
+      },
+      "wifi_signal": {
+        "name": "Wi-Fi signal"
+      },
+      "wifi_network": {
+        "name": "Wi-Fi network"
+      },
+      "datalogger_firmware": {
+        "name": "Firmware"
+      },
+      "datalogger_hardware": {
+        "name": "Hardware version"
+      },
+      "cloud_server": {
+        "name": "Cloud server"
+      },
+      "last_record": {
+        "name": "Last record"
+      },
+      "savings_today": {
+        "name": "Savings today"
+      },
+      "savings_month": {
+        "name": "Savings this month"
+      },
+      "savings_year": {
+        "name": "Savings this year"
+      },
+      "savings_total": {
+        "name": "Total savings"
+      },
+      "co2_avoided": {
+        "name": "CO2 avoided"
+      },
+      "trees_saved": {
+        "name": "Trees saved"
+      },
+      "coal_saved": {
+        "name": "Coal saved"
+      },
+      "specific_yield_today": {
+        "name": "Specific yield today"
+      },
+      "utilization": {
+        "name": "Utilization"
+      },
+      "installed_capacity": {
+        "name": "Installed capacity"
+      },
+      "energy_price": {
+        "name": "Energy price"
+      },
+      "plant_status": {
+        "name": "Status",
+        "state": {
+          "normal": "Normal",
+          "fault": "Fault",
+          "offline": "Offline"
+        }
+      },
+      "peak_power_today": {
+        "name": "Peak power today"
       }
     },
     "binary_sensor": {
@@ -151,10 +229,13 @@
         "name": "Fault"
       },
       "datalogger_wifi": {
-        "name": "Datalogger Wi-Fi"
+        "name": "Wi-Fi"
       },
       "datalogger_cloud": {
-        "name": "Datalogger cloud"
+        "name": "Cloud"
+      },
+      "datalogger_ethernet": {
+        "name": "Ethernet"
       }
     },
     "switch": {
@@ -174,6 +255,14 @@
       "sync_clock": {
         "name": "Sync inverter clock"
       }
+    }
+  },
+  "device": {
+    "datalogger": {
+      "name": "{name} Datalogger"
+    },
+    "plant": {
+      "name": "{name} Plant"
     }
   }
 }

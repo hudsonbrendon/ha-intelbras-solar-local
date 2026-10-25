@@ -5,7 +5,14 @@ from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
-from intelbras_solar_local import DataloggerStatus, InverterStatus, Mppt
+from intelbras_solar_local import (
+    DataloggerInfo,
+    DataloggerStatus,
+    GridParameter,
+    InverterStatus,
+    Mppt,
+    WifiSignal,
+)
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.intelbras_solar_local.const import DOMAIN
@@ -84,6 +91,8 @@ def make_status():
             power_limit=100.0,
             clock=datetime(2026, 10, 24, 14, 51, 39),
             mppts=[Mppt(189.0, 6.2), Mppt(186.0, 6.5)],
+            arm_firmware="ARM_SUNSTONE-S_V11_V01_A",
+            dsp_firmware="MDSP_SUNSTONE-S_V11_V01_A",
             datalogger=DataloggerStatus(
                 model="IONS-5K M5",
                 wifi_connected=True,
@@ -110,9 +119,27 @@ def mock_client():
         "async_set_power_limit",
         "async_set_clock",
         "async_close",
+        "async_get_datalogger_info",
+        "async_get_wifi_signal",
+        "async_get_grid_parameters",
     )
     patchers = {n: patch(f"{base}.{n}", new=AsyncMock()) for n in names}
     mocks = {n: p.start() for n, p in patchers.items()}
+    mocks["async_get_datalogger_info"].return_value = DataloggerInfo(
+        serial="B12345",
+        firmware_version="WIFI-SV300.001.03.P002",
+        build_version="WIFI-SV300.001.03.B000",
+        hardware_version="M_WI-FI_V01_V01_A",
+        cloud_server="app.isolarcloud.com",
+        timezone="UTC-03:00",
+        wifi_connected=True,
+        ethernet_connected=False,
+    )
+    mocks["async_get_wifi_signal"].return_value = WifiSignal("CASA", -36)
+    mocks["async_get_grid_parameters"].return_value = [
+        GridParameter("protection_series", 2.0, None, 32313),
+        GridParameter("overvoltage_single_protect_value", 268.8, "V", 32323),
+    ]
     yield MagicMock(**mocks)
     for p in patchers.values():
         p.stop()
@@ -122,7 +149,7 @@ def mock_client():
 def init_integration(hass, make_status, mock_client):
     """Set up the integration with a patched client. Returns (entry, coordinator)."""
 
-    async def _init(status=None):
+    async def _init(status=None, options=None):
         mock_client.async_get_status.return_value = (
             make_status() if status is None else status
         )
@@ -132,6 +159,7 @@ def init_integration(hass, make_status, mock_client):
             data=ENTRY_DATA,
             unique_id=SERIAL,
             entry_id="intelbras_test",
+            options=options or {},
         )
         entry.add_to_hass(hass)
         await hass.config_entries.async_setup(entry.entry_id)

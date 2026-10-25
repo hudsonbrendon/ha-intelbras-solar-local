@@ -4,16 +4,20 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import replace
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.util import dt as dt_util
 
 from intelbras_solar_local import (
+    DataloggerInfo,
+    GridParameter,
     IntelbrasSolarClient,
     IntelbrasSolarError,
     InverterStatus,
+    WifiSignal,
 )
 
 from .const import DOMAIN
@@ -28,6 +32,9 @@ WRITE_SETTLE_SECONDS = 3
 # timeouts happen (Wi-Fi hiccups, another Modbus client) and must not flap
 # every entity to unavailable.
 OFFLINE_AFTER_FAILURES = 3
+# Datalogger identity, Wi-Fi signal (a ~3 s station scan) and grid settings
+# barely move; they refresh on this slower cadence instead of every poll.
+SLOW_EXTRAS_INTERVAL = timedelta(minutes=10)
 
 
 class IntelbrasSolarCoordinator(DataUpdateCoordinator[InverterStatus]):
@@ -46,9 +53,25 @@ class IntelbrasSolarCoordinator(DataUpdateCoordinator[InverterStatus]):
             update_interval=timedelta(seconds=scan_interval),
         )
         self.client = client
+        self.datalogger_info: DataloggerInfo | None = None
+        self.wifi_signal: WifiSignal | None = None
+        self.grid_parameters: list[GridParameter] = []
+        self.last_record: datetime | None = None
+        # Plant settings, filled from the options in async_setup_entry.
+        self.energy_price = 0.0
+        self.installed_capacity = 0.0
+        self.co2_factor = 0.0
         self._failures = 0
         self._written: dict[str, Any] = {}
         self._written_at = 0.0
+        self._slow_extras_at: datetime | None = None
+
+    @property
+    def capacity_kwp(self) -> float | None:
+        """Installed capacity: the option, else the inverter's nominal power."""
+        if self.installed_capacity > 0:
+            return self.installed_capacity
+        return self.data.nominal_power if self.data else None
 
     async def _async_update_data(self) -> InverterStatus:
         """Fetch status; an asleep inverter is not a fatal error.
@@ -68,11 +91,37 @@ class IntelbrasSolarCoordinator(DataUpdateCoordinator[InverterStatus]):
                     return self.data
             return InverterStatus(online=False)
         self._failures = 0
+        self.last_record = dt_util.utcnow()
+        await self._async_refresh_slow_extras()
         if self._written:
             if started - self._written_at < WRITE_SETTLE_SECONDS:
                 return replace(status, **self._written)
             self._written = {}
         return status
+
+    async def _async_refresh_slow_extras(self) -> None:
+        """Best-effort refresh of the slow datalogger extras; never raises."""
+        now = dt_util.utcnow()
+        if self._slow_extras_at and now - self._slow_extras_at < SLOW_EXTRAS_INTERVAL:
+            return
+        self._slow_extras_at = now
+        self.datalogger_info = await self._safe(
+            self.client.async_get_datalogger_info(), self.datalogger_info
+        )
+        self.wifi_signal = await self._safe(
+            self.client.async_get_wifi_signal(), self.wifi_signal
+        )
+        self.grid_parameters = await self._safe(
+            self.client.async_get_grid_parameters(), self.grid_parameters
+        )
+
+    async def _safe(self, coro, default):
+        """Await coro, keeping the previous value on a datalogger error."""
+        try:
+            return await coro
+        except IntelbrasSolarError as err:
+            _LOGGER.debug("Datalogger extra fetch failed: %s", err)
+            return default
 
     def async_set_written(self, **fields: Any) -> None:
         """Show a successful write right away.
