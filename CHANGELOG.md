@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [0.4.1]
+
+### Fixed
+- The fault history and firmware versions could stay empty after a restart.
+  The datalogger sometimes refused the WebSocket session that followed the
+  previous one; `python-intelbras-solar-local` 0.3.1 now retries it.
+
 ## [0.4.0]
 
 ### Added
