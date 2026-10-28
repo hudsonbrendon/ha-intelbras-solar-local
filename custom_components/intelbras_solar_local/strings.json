@@ -216,6 +216,12 @@
       },
       "peak_power_today": {
         "name": "Peak power today"
+      },
+      "fault_events": {
+        "name": "Recorded faults"
+      },
+      "last_fault": {
+        "name": "Last fault"
       }
     },
     "binary_sensor": {

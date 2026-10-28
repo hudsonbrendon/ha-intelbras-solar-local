@@ -13,9 +13,11 @@ from homeassistant.util import dt as dt_util
 
 from intelbras_solar_local import (
     DataloggerInfo,
+    FaultEvent,
     GridParameter,
     IntelbrasSolarClient,
     IntelbrasSolarError,
+    InverterInfo,
     InverterStatus,
     WifiSignal,
 )
@@ -32,8 +34,9 @@ WRITE_SETTLE_SECONDS = 3
 # timeouts happen (Wi-Fi hiccups, another Modbus client) and must not flap
 # every entity to unavailable.
 OFFLINE_AFTER_FAILURES = 3
-# Datalogger identity, Wi-Fi signal (a ~3 s station scan) and grid settings
-# barely move; they refresh on this slower cadence instead of every poll.
+# Datalogger/inverter identity, Wi-Fi signal (a ~3 s station scan), grid
+# settings and the fault history barely move; they refresh on this slower
+# cadence instead of every poll.
 SLOW_EXTRAS_INTERVAL = timedelta(minutes=10)
 
 
@@ -56,6 +59,8 @@ class IntelbrasSolarCoordinator(DataUpdateCoordinator[InverterStatus]):
         self.datalogger_info: DataloggerInfo | None = None
         self.wifi_signal: WifiSignal | None = None
         self.grid_parameters: list[GridParameter] = []
+        self.inverter_info: InverterInfo | None = None
+        self.fault_history: list[FaultEvent] = []
         self.last_record: datetime | None = None
         # Plant settings, filled from the options in async_setup_entry.
         self.energy_price = 0.0
@@ -113,6 +118,12 @@ class IntelbrasSolarCoordinator(DataUpdateCoordinator[InverterStatus]):
         )
         self.grid_parameters = await self._safe(
             self.client.async_get_grid_parameters(), self.grid_parameters
+        )
+        self.inverter_info = await self._safe(
+            self.client.async_get_inverter_info(), self.inverter_info
+        )
+        self.fault_history = await self._safe(
+            self.client.async_get_fault_history(), self.fault_history
         )
 
     async def _safe(self, coro, default):

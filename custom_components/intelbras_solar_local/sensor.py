@@ -1,6 +1,7 @@
 """Sensors for the Intelbras Solar Local integration."""
 from __future__ import annotations
 
+from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
@@ -30,7 +31,7 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from intelbras_solar_local import InverterStatus
+from intelbras_solar_local import FaultEvent, InverterStatus
 
 from .const import (
     COAL_KG_PER_KWH,
@@ -55,6 +56,37 @@ class IntelbrasSolarSensorEntityDescription(SensorEntityDescription):
     attrs_fn: Callable[[IntelbrasSolarCoordinator], dict[str, Any]] | None = None
     device: str = DEVICE_INVERTER
     always_available: bool = False
+
+
+# Events listed in the fault_events attributes; the full history can be long.
+RECENT_FAULTS = 10
+
+
+def _version(c: IntelbrasSolarCoordinator, attr: str, fallback: str | None):
+    """Firmware version from the web UI, else the Modbus family string."""
+    return getattr(c.inverter_info, attr, None) or fallback
+
+
+def _fault_time(event: FaultEvent) -> datetime | None:
+    """The inverter logs local wall-clock time; read it in HA's time zone."""
+    if event.time is None:
+        return None
+    return event.time.replace(tzinfo=dt_util.get_default_time_zone())
+
+
+def _last_fault(c: IntelbrasSolarCoordinator) -> FaultEvent | None:
+    """Most recent event that raised a fault (not the one that cleared it)."""
+    return next((e for e in c.fault_history if e.active), None)
+
+
+def _fault_attrs(event: FaultEvent) -> dict[str, Any]:
+    return {
+        "time": _fault_time(event),
+        "fault": event.name,
+        "code": event.code,
+        "level": event.level,
+        "raised": event.active,
+    }
 
 
 def _round(value: float | None, digits: int) -> float | None:
@@ -297,14 +329,40 @@ SENSORS: tuple[IntelbrasSolarSensorEntityDescription, ...] = (
         translation_key="arm_firmware",
         icon="mdi:chip",
         entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda s: s.arm_firmware,
+        coordinator_fn=lambda c: _version(c, "arm_version", c.data.arm_firmware),
+        attrs_fn=lambda c: {"family": c.data.arm_firmware},
     ),
     IntelbrasSolarSensorEntityDescription(
         key="dsp_firmware",
         translation_key="dsp_firmware",
         icon="mdi:chip",
         entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda s: s.dsp_firmware,
+        coordinator_fn=lambda c: _version(c, "mdsp_version", c.data.dsp_firmware),
+        attrs_fn=lambda c: {
+            "family": c.data.dsp_firmware,
+            "slave_dsp_version": _version(c, "sdsp_version", None),
+            "cpld_version": _version(c, "cpld_version", None),
+        },
+    ),
+    IntelbrasSolarSensorEntityDescription(
+        key="fault_events",
+        translation_key="fault_events",
+        icon="mdi:alert-circle-outline",
+        state_class=MEASUREMENT,
+        always_available=True,
+        coordinator_fn=lambda c: sum(e.active for e in c.fault_history),
+        attrs_fn=lambda c: {
+            "by_fault": dict(Counter(e.name for e in c.fault_history if e.active)),
+            "recent": [_fault_attrs(e) for e in c.fault_history[:RECENT_FAULTS]],
+        },
+    ),
+    IntelbrasSolarSensorEntityDescription(
+        key="last_fault",
+        translation_key="last_fault",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        always_available=True,
+        coordinator_fn=lambda c: _last_fault(c) and _fault_time(_last_fault(c)),
+        attrs_fn=lambda c: _fault_attrs(_last_fault(c)) if _last_fault(c) else None,
     ),
     IntelbrasSolarSensorEntityDescription(
         key="grid_protection",

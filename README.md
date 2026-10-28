@@ -57,8 +57,8 @@ or stop the inverter and set its power limit. There is no cloud and no account.
 ## Comparison with the cloud integration
 
 [Solar Plus Intelbras](https://github.com/hudsonbrendon/HA-solar-plus-intelbras) reads the Intelbras cloud. That
-integration's distinctive data is weather and the cloud alert history. This integration reads the hardware directly
-and calculates the plant figures locally. The two can run side by side.
+integration's distinctive data is weather. This integration reads the hardware directly, takes the fault history from
+the datalogger and calculates the plant figures locally. The two can run side by side.
 
 | | Solar Plus Intelbras (cloud) | Intelbras Solar Local |
 |---|---|---|
@@ -75,7 +75,8 @@ and calculates the plant figures locally. The two can run side by side.
 | Datalogger firmware, Wi-Fi signal | ✅ | ✅ |
 | Inverter firmware (ARM/DSP), efficiency, grid-protection settings | ❌ | ✅ |
 | Specific yield, utilization, peak power of the day | ❌ | ✅ |
-| Weather, cloud alert history | ✅ | ❌ |
+| Fault / alert history | ✅ | ✅ (from the datalogger) |
+| Weather | ✅ | ❌ |
 
 ## Architecture
 
@@ -157,7 +158,9 @@ Assistant language: in Portuguese, for example, `sensor.<name>_potencia_ac`. The
 | `sensor.<name>_nominal_power` | Diagnostics (kW) |
 | `sensor.<name>_inverter_clock` | Diagnostics, disabled by default |
 | `sensor.<name>_inverter_efficiency` | AC output / DC input (%) |
-| `sensor.<name>_arm_firmware` / `_dsp_firmware` | Inverter firmware (diagnostics) |
+| `sensor.<name>_arm_firmware` / `_dsp_firmware` | Inverter firmware versions (diagnostics); slave DSP and CPLD as attributes |
+| `sensor.<name>_recorded_faults` | Faults in the datalogger's history; attributes `by_fault` and the 10 most recent events |
+| `sensor.<name>_last_fault` | Time of the latest fault; attributes `fault`, `code`, `level` |
 | `sensor.<name>_grid_protection_levels` | Number of protection levels. Attributes hold every threshold (V/Hz) and trip time (s) |
 
 ### Datalogger sensors

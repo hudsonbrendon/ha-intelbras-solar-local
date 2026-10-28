@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented here.
 
+## [0.4.0]
+
+### Added
+- Inverter: *Recorded faults* counts the faults in the datalogger's history.
+  Its attributes break the count down by fault and list the 10 most recent
+  events. *Last fault* holds the time of the latest one, with the fault name,
+  code and level as attributes. The history goes back to December 2024 on the
+  test unit and covers what the cloud lists as alerts.
+- Diagnostics include the inverter info and the latest 50 fault events.
+
+### Changed
+- The ARM and DSP firmware sensors, and the inverter's device page, show the
+  real firmware versions from the web UI (for example
+  `SUNSTONE-S_01011.01.39`). The Modbus string `ARM_SUNSTONE-S_V11_V01_A` is
+  the firmware family, not a version, and moves to the `family` attribute.
+  The DSP sensor also carries the slave DSP and CPLD versions.
+- Requires `python-intelbras-solar-local` 0.3.0.
+
 ## [0.3.0]
 
 ### Added

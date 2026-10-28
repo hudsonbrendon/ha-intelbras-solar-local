@@ -35,6 +35,12 @@ async def async_get_config_entry_diagnostics(
         if coordinator.wifi_signal
         else None,
         "grid_parameters": [asdict(p) for p in coordinator.grid_parameters],
+        "inverter_info": async_redact_data(
+            asdict(coordinator.inverter_info), TO_REDACT
+        )
+        if coordinator.inverter_info
+        else None,
+        "fault_history": [asdict(e) for e in coordinator.fault_history[:50]],
         "last_record": coordinator.last_record,
         "derived": {
             "model": data.model,

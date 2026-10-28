@@ -53,10 +53,17 @@ def device_info(
         manufacturer=MANUFACTURER,
         model=data.model if data else None,
         serial_number=entry.unique_id,
-        sw_version=data.arm_firmware if data else None,
+        sw_version=_arm_version(coordinator),
         configuration_url=url,
         via_device=(DOMAIN, f"{serial}_datalogger"),
     )
+
+
+def _arm_version(coordinator: IntelbrasSolarCoordinator) -> str | None:
+    """Web UI version, else the firmware family from the Modbus registers."""
+    if coordinator.inverter_info and coordinator.inverter_info.arm_version:
+        return coordinator.inverter_info.arm_version
+    return coordinator.data.arm_firmware if coordinator.data else None
 
 
 class IntelbrasSolarEntity(CoordinatorEntity[IntelbrasSolarCoordinator]):

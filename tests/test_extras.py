@@ -5,7 +5,7 @@ from datetime import timedelta
 
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.util import dt as dt_util
-from intelbras_solar_local import InverterStatus, WifiSignal
+from intelbras_solar_local import InverterInfo, InverterStatus, WifiSignal
 
 from custom_components.intelbras_solar_local import coordinator as coord_mod
 
@@ -27,8 +27,12 @@ async def test_datalogger_sensors(hass, init_integration):
 
 async def test_inverter_firmware_efficiency_and_grid(hass, init_integration):
     await init_integration()
-    assert hass.states.get(INV + "arm_firmware").state == "ARM_SUNSTONE-S_V11_V01_A"
-    assert hass.states.get(INV + "dsp_firmware").state == "MDSP_SUNSTONE-S_V11_V01_A"
+    arm = hass.states.get(INV + "arm_firmware")
+    assert arm.state == "SUNSTONE-S_01011.01.39"
+    assert arm.attributes["family"] == "ARM_SUNSTONE-S_V11_V01_A"
+    dsp = hass.states.get(INV + "dsp_firmware")
+    assert dsp.state == "SUNSTONE-S_03011.01.24"
+    assert dsp.attributes["cpld_version"] == "SUNSTONE-S_08011.01.01"
     assert hass.states.get(INV + "inverter_efficiency").state == "94.1"
     grid = hass.states.get(INV + "grid_protection_levels")
     assert grid.state == "3"
@@ -85,3 +89,31 @@ def _frozen(when):
     from unittest.mock import patch
 
     return patch.object(coord_mod.dt_util, "utcnow", return_value=when)
+
+
+async def test_firmware_falls_back_to_modbus(hass, init_integration, mock_client):
+    mock_client.async_get_inverter_info.return_value = InverterInfo()
+    await init_integration()
+    arm = hass.states.get(INV + "arm_firmware")
+    assert arm.state == "ARM_SUNSTONE-S_V11_V01_A"
+
+
+async def test_fault_history_sensors(hass, init_integration):
+    await hass.config.async_set_time_zone("America/Sao_Paulo")
+    await init_integration()
+    count = hass.states.get(INV + "recorded_faults")
+    assert count.state == "2"
+    by_fault = count.attributes["by_fault"]
+    assert by_fault == {"grid_interruption": 1, "leakage_current": 1}
+    assert len(count.attributes["recent"]) == 3
+    last = hass.states.get(INV + "last_fault")
+    # 11:46:35 in São Paulo (UTC-3) is 14:46:35 UTC.
+    assert last.state == "2026-09-18T14:46:35+00:00"
+    assert last.attributes["fault"] == "grid_interruption"
+
+
+async def test_last_fault_unknown_without_history(hass, init_integration, mock_client):
+    mock_client.async_get_fault_history.return_value = []
+    await init_integration()
+    assert hass.states.get(INV + "last_fault").state == "unknown"
+    assert hass.states.get(INV + "recorded_faults").state == "0"

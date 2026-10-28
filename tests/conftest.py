@@ -8,7 +8,9 @@ import pytest
 from intelbras_solar_local import (
     DataloggerInfo,
     DataloggerStatus,
+    FaultEvent,
     GridParameter,
+    InverterInfo,
     InverterStatus,
     Mppt,
     WifiSignal,
@@ -122,6 +124,8 @@ def mock_client():
         "async_get_datalogger_info",
         "async_get_wifi_signal",
         "async_get_grid_parameters",
+        "async_get_inverter_info",
+        "async_get_fault_history",
     )
     patchers = {n: patch(f"{base}.{n}", new=AsyncMock()) for n in names}
     mocks = {n: p.start() for n, p in patchers.items()}
@@ -136,6 +140,24 @@ def mock_client():
         ethernet_connected=False,
     )
     mocks["async_get_wifi_signal"].return_value = WifiSignal("CASA", -36)
+    mocks["async_get_inverter_info"].return_value = InverterInfo(
+        serial=SERIAL,
+        model="IONS-5K M5",
+        rated_power=5.0,
+        rated_reactive_power=3.0,
+        arm_version="SUNSTONE-S_01011.01.39",
+        mdsp_version="SUNSTONE-S_03011.01.24",
+        sdsp_version="SUNSTONE-S_04011.01.01",
+        cpld_version="SUNSTONE-S_08011.01.01",
+    )
+    mocks["async_get_fault_history"].return_value = [
+        FaultEvent(datetime(*when), code, name, "fault", raised, "10")
+        for when, code, name, raised in (
+            ((2026, 9, 18, 11, 46, 45), 5, "grid_interruption", False),
+            ((2026, 9, 18, 11, 46, 35), 5, "grid_interruption", True),
+            ((2026, 8, 7, 15, 41, 57), 6, "leakage_current", True),
+        )
+    ]
     mocks["async_get_grid_parameters"].return_value = [
         GridParameter("protection_series", 2.0, None, 32313),
         GridParameter("overvoltage_single_protect_value", 268.8, "V", 32323),
