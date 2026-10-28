@@ -49,8 +49,34 @@ async def test_slow_extras_are_throttled(hass, init_integration, mock_client):
     mock_client.async_get_wifi_signal.return_value = WifiSignal("CASA", -50)
     with _frozen(later):
         await coordinator.async_refresh()
+        await hass.async_block_till_done(wait_background_tasks=True)
     assert mock_client.async_get_wifi_signal.await_count == 2
     assert coordinator.wifi_signal.rssi == -50
+
+
+async def test_poll_does_not_wait_for_slow_extras(
+    hass, init_integration, mock_client
+):
+    import asyncio
+
+    _, coordinator = await init_integration()
+    release = asyncio.Event()
+
+    async def slow_scan():
+        await release.wait()
+        return WifiSignal("CASA", -40)
+
+    mock_client.async_get_wifi_signal.side_effect = slow_scan
+    later = dt_util.utcnow() + coord_mod.SLOW_EXTRAS_INTERVAL + timedelta(seconds=1)
+    with _frozen(later):
+        await asyncio.wait_for(coordinator.async_refresh(), 1)
+        # A second poll while the scan still runs does not start another one.
+        await asyncio.wait_for(coordinator.async_refresh(), 1)
+    assert coordinator.wifi_signal.rssi == -36
+    release.set()
+    await hass.async_block_till_done(wait_background_tasks=True)
+    assert coordinator.wifi_signal.rssi == -40
+    assert hass.states.get(D + "wi_fi_signal").state == "-40"
 
 
 async def test_extras_failure_keeps_previous_value(hass, init_integration, mock_client):
@@ -61,6 +87,7 @@ async def test_extras_failure_keeps_previous_value(hass, init_integration, mock_
     later = dt_util.utcnow() + coord_mod.SLOW_EXTRAS_INTERVAL + timedelta(seconds=1)
     with _frozen(later):
         await coordinator.async_refresh()
+        await hass.async_block_till_done(wait_background_tasks=True)
     assert coordinator.data.online is True
     assert coordinator.wifi_signal.rssi == -36
 

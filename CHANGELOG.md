@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here.
 
+## [0.4.2]
+
+### Fixed
+- The 10-minute refresh of the datalogger extras runs in the background. It
+  used to block the regular poll, which took 54 s on one restart while the
+  datalogger timed out. The Wi-Fi scan now runs last, because it briefly takes
+  the datalogger's radio away.
+- Removed the deprecated `via_device` link from the inverter to the
+  datalogger. Recent Home Assistant versions warned about it. Existing
+  installations keep the link already stored in the device registry.
+
 ## [0.4.1]
 
 ### Fixed

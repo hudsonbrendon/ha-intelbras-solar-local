@@ -21,7 +21,8 @@ def device_info(
     """Inverter, datalogger and plant devices, like the Intelbras cloud splits them.
 
     The inverter keeps the serial-only identifier it had before the split, so
-    existing entities stay on it.
+    existing entities stay on it. It is not linked to the datalogger:
+    ``via_device`` is deprecated and ``via_device_id`` is missing before 2025.
     """
     serial = entry.unique_id or entry.entry_id
     url = f"http://{coordinator.client.host}"
@@ -55,7 +56,6 @@ def device_info(
         serial_number=entry.unique_id,
         sw_version=_arm_version(coordinator),
         configuration_url=url,
-        via_device=(DOMAIN, f"{serial}_datalogger"),
     )
 
 

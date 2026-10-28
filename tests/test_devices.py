@@ -19,7 +19,6 @@ async def test_three_devices(hass, init_integration):
     plant = devices.async_get_device(identifiers={(DOMAIN, f"{SERIAL}_plant")})
 
     assert inverter.sw_version == "SUNSTONE-S_01011.01.39"
-    assert inverter.via_device_id == datalogger.id
     assert datalogger.name == "Intelbras Solar Local Datalogger"
     assert datalogger.model == "WiNet-S"
     assert datalogger.serial_number == "B12345"

@@ -1,6 +1,7 @@
 """DataUpdateCoordinator for the Intelbras Solar Local integration."""
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from dataclasses import replace
@@ -70,6 +71,7 @@ class IntelbrasSolarCoordinator(DataUpdateCoordinator[InverterStatus]):
         self._written: dict[str, Any] = {}
         self._written_at = 0.0
         self._slow_extras_at: datetime | None = None
+        self._slow_task: asyncio.Task[None] | None = None
 
     @property
     def capacity_kwp(self) -> float | None:
@@ -97,34 +99,48 @@ class IntelbrasSolarCoordinator(DataUpdateCoordinator[InverterStatus]):
             return InverterStatus(online=False)
         self._failures = 0
         self.last_record = dt_util.utcnow()
-        await self._async_refresh_slow_extras()
+        self._schedule_slow_extras()
         if self._written:
             if started - self._written_at < WRITE_SETTLE_SECONDS:
                 return replace(status, **self._written)
             self._written = {}
         return status
 
-    async def _async_refresh_slow_extras(self) -> None:
-        """Best-effort refresh of the slow datalogger extras; never raises."""
+    def _schedule_slow_extras(self) -> None:
+        """Start the slow refresh in the background so polls never wait on it.
+
+        It opens several datalogger sessions in a row and can take a while
+        when the WiNet-S is slow to answer.
+        """
         now = dt_util.utcnow()
+        if self._slow_task is not None and not self._slow_task.done():
+            return
         if self._slow_extras_at and now - self._slow_extras_at < SLOW_EXTRAS_INTERVAL:
             return
         self._slow_extras_at = now
+        self._slow_task = self.config_entry.async_create_background_task(
+            self.hass, self._async_refresh_slow_extras(), f"{DOMAIN} slow extras"
+        )
+
+    async def _async_refresh_slow_extras(self) -> None:
+        """Best-effort refresh of the slow datalogger extras; never raises."""
         self.datalogger_info = await self._safe(
             self.client.async_get_datalogger_info(), self.datalogger_info
-        )
-        self.wifi_signal = await self._safe(
-            self.client.async_get_wifi_signal(), self.wifi_signal
-        )
-        self.grid_parameters = await self._safe(
-            self.client.async_get_grid_parameters(), self.grid_parameters
         )
         self.inverter_info = await self._safe(
             self.client.async_get_inverter_info(), self.inverter_info
         )
+        self.grid_parameters = await self._safe(
+            self.client.async_get_grid_parameters(), self.grid_parameters
+        )
         self.fault_history = await self._safe(
             self.client.async_get_fault_history(), self.fault_history
         )
+        # Last: the station scan briefly takes the datalogger's radio away.
+        self.wifi_signal = await self._safe(
+            self.client.async_get_wifi_signal(), self.wifi_signal
+        )
+        self.async_update_listeners()
 
     async def _safe(self, coro, default):
         """Await coro, keeping the previous value on a datalogger error."""
