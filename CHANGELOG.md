@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.4.3]
+
+### Fixed
+- *Recorded faults* and *Last fault* could stay at 0 / unknown. The library
+  fetched the whole history in one request, and the datalogger sometimes
+  answered that with an empty list. `python-intelbras-solar-local` 0.3.2 pages
+  through it instead.
+
 ## [0.4.2]
 
 ### Fixed

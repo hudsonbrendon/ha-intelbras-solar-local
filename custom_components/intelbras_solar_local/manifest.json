@@ -7,8 +7,8 @@
   "integration_type": "device",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/hudsonbrendon/ha-intelbras-solar-local/issues",
-  "requirements": ["python-intelbras-solar-local==0.3.1"],
-  "version": "0.4.2",
+  "requirements": ["python-intelbras-solar-local==0.3.2"],
+  "version": "0.4.3",
   "zeroconf": [
     {
       "type": "_http._tcp.local.",
