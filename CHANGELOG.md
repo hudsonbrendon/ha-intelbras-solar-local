@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## [0.5.1]
+
+### Fixed
+- The Portuguese name of the over-frequency derating curve select was just
+  "Curva".
+
 ## [0.5.0]
 
 ### Added

@@ -423,7 +423,7 @@
     },
     "select": {
       "overfrequency_derating_curve": {
-        "name": "Curva",
+        "name": "Curva de redução de potência em sobrefrequência",
         "state": {
           "cura_a": "Curva A",
           "cura_b": "Curva B",
