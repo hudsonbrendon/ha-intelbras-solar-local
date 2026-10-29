@@ -43,6 +43,10 @@ or stop the inverter and set its power limit. There is no cloud and no account.
   - specific yield (kWh/kWp) and utilization (%);
   - peak power of the day;
   - installed capacity, energy price and plant status.
+- **Inverter parameters**: every system and grid-protection setting from the datalogger's web UI, as numbers,
+  selects and switches. Examples: connecting and reconnecting time, PID recovery, power limits, over-frequency
+  derating, protection level and thresholds. There is also a `set_parameter` action for any of them.
+- **Reactive power**: power factor setting and reactive power mode.
 - **Controls** (disabled by default):
   - turn the inverter on or off;
   - turn power limitation on or off, and set the power limit (%);
@@ -170,6 +174,9 @@ Assistant language: in Portuguese, for example, `sensor.<name>_potencia_ac`. The
 | `sensor.<name>_datalogger_wi_fi_signal` / `_wi_fi_network` | RSSI (dBm) and SSID. Refreshed every 10 min with a ~3 s station scan |
 | `sensor.<name>_datalogger_firmware` / `_hardware_version` | Datalogger versions |
 | `sensor.<name>_datalogger_cloud_server` | Server the datalogger reports to (`app.isolarcloud.com`) |
+| `sensor.<name>_datalogger_grid_code` | Grid code set on the inverter (e.g. `brazil_240`) |
+| `sensor.<name>_datalogger_hotspot_ssid` / `_ntp_server` | Datalogger hotspot and NTP server (disabled by default) |
+| `binary_sensor.<name>_datalogger_iec_104_server` | On while the datalogger's unauthenticated IEC 104 server (port 2404) is enabled |
 | `sensor.<name>_datalogger_last_record` | Time of the last successful reading. Stays available overnight |
 
 ### Plant sensors (calculated)
@@ -193,6 +200,39 @@ Assistant language: in Portuguese, for example, `sensor.<name>_potencia_ac`. The
 | `binary_sensor.<name>_fault` | Problem; attributes `fault_code` and `faults` (datalogger list) |
 | `binary_sensor.<name>_datalogger_wi_fi` / `_datalogger_cloud` / `_datalogger_ethernet` | Datalogger links (Ethernet is disabled by default) |
 
+### Inverter parameters
+
+The parameters are read from the datalogger every 10 minutes and written through it; no login is needed. Each entity
+has its Modbus register as an attribute.
+
+| Entity | Default |
+|--------|---------|
+| `number.<name>_connecting_time` / `_reconnecting_time` | Enabled |
+| `switch.<name>_pid_recovery` | Enabled |
+| `number.<name>_rated_active_power_limit` / `_apparent_power_limit` | Enabled |
+| `switch.<name>_power_reduction_at_overfrequency` and the derating numbers/curve | Disabled |
+| `switch.<name>_grid_voltage_rising_suppression` | Disabled |
+| `select.<name>_pv_connection_mode` | Disabled |
+| `select.<name>_protection_level` and 28 protection thresholds/trip times | Disabled |
+| `number.<name>_power_factor_setting` / `select.<name>_reactive_power_mode` | Disabled |
+
+> **Grid-code settings.** The protection thresholds, over-frequency derating, voltage rise suppression and reactive
+> power settings come from your installer and your utility's grid code. Changing them can make the inverter
+> non-compliant or disable anti-islanding protection. They ship disabled; enable one only if you know the value you
+> need.
+
+`intelbras_solar_local.set_parameter` writes any parameter by library key or register:
+
+```yaml
+action: intelbras_solar_local.set_parameter
+data:
+  parameter: standby_time   # or the register, e.g. "30091"
+  value: 30
+```
+
+It also reaches the *total yield adjustment* (`set_total_power`), which has no entity because it rewrites the
+lifetime energy counter.
+
 ### Controls (disabled by default)
 
 Each of these writes to the inverter. Enable the ones you want under the device page.
@@ -203,6 +243,7 @@ Each of these writes to the inverter. Enable the ones you want under the device 
 | `switch.<name>_power_limitation` | Enables the active power limit |
 | `number.<name>_power_limit` | Power limit, 0–100 % of nominal power |
 | `button.<name>_sync_inverter_clock` | Sets the inverter clock to Home Assistant's local time |
+| `button.<name>_datalogger_reboot` | Restarts the datalogger (enabled; readings pause about a minute) |
 
 ## Diagnostics
 
@@ -211,8 +252,9 @@ latest inverter snapshot, with the serial number redacted.
 
 ## Notes & limitations
 
-- **LAN only, no auth**: Modbus TCP and the datalogger WebSocket accept any client on the network by design. Keep the
-  datalogger on a trusted network.
+- **LAN only, no auth**: Modbus TCP, the datalogger WebSocket and its parameter writes accept any client on the
+  network, and the datalogger also runs an IEC 104 server on port 2404. Keep it on a trusted network, ideally an
+  isolated VLAN.
 - **One Modbus client at a time**: the WiNet-S times out when several Modbus clients poll it together. Keep this
   integration as the only Modbus TCP client; the Intelbras cloud and app are unaffected. Single failed polls are
   tolerated: the inverter is reported offline only after 3 failures in a row.

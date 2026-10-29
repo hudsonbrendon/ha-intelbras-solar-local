@@ -22,7 +22,11 @@ from intelbras_solar_local import (
 )
 
 from .const import DOMAIN
-from .entity import IntelbrasSolarEntity
+from .entity import (
+    IntelbrasSolarEntity,
+    IntelbrasSolarParameterEntity,
+    async_add_parameter_entities,
+)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -66,6 +70,9 @@ async def async_setup_entry(
         IntelbrasSolarSwitch(coordinator, entry, description)
         for description in SWITCHES
     )
+    async_add_parameter_entities(
+        coordinator, entry, async_add_entities, "switch", IntelbrasSolarParameterSwitch
+    )
 
 
 class IntelbrasSolarSwitch(IntelbrasSolarEntity, SwitchEntity):
@@ -93,3 +100,18 @@ class IntelbrasSolarSwitch(IntelbrasSolarEntity, SwitchEntity):
         except IntelbrasSolarError as err:
             raise HomeAssistantError(f"Failed to write to the inverter: {err}") from err
         self.coordinator.async_set_written(**{self.entity_description.field: value})
+
+
+class IntelbrasSolarParameterSwitch(IntelbrasSolarParameterEntity, SwitchEntity):
+    """An enable/disable inverter parameter."""
+
+    @property
+    def is_on(self) -> bool | None:
+        option = self.parameter.option if self.parameter else None
+        return None if option is None else option == "enable"
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self._async_write("enable")
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._async_write("prohibited")

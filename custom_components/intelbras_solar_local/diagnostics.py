@@ -40,7 +40,8 @@ async def async_get_config_entry_diagnostics(
         )
         if coordinator.inverter_info
         else None,
-        "fault_history": [asdict(e) for e in coordinator.fault_history[:50]],
+        "fault_history": [asdict(e) for e in (coordinator.fault_history or [])[:50]],
+        "system_parameters": [asdict(p) for p in coordinator.system_parameters],
         "last_record": coordinator.last_record,
         "derived": {
             "model": data.model,

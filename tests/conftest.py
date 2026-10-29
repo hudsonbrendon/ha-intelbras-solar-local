@@ -6,13 +6,15 @@ from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
 from intelbras_solar_local import (
+    PARAM_PROTECTION,
+    PARAM_SYSTEM,
     DataloggerInfo,
     DataloggerStatus,
     FaultEvent,
-    GridParameter,
     InverterInfo,
     InverterStatus,
     Mppt,
+    Parameter,
     WifiSignal,
 )
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -126,6 +128,11 @@ def mock_client():
         "async_get_grid_parameters",
         "async_get_inverter_info",
         "async_get_fault_history",
+        "async_get_parameters",
+        "async_set_parameter",
+        "async_reboot_datalogger",
+        "async_set_power_factor",
+        "async_set_reactive_mode",
     )
     patchers = {n: patch(f"{base}.{n}", new=AsyncMock()) for n in names}
     mocks = {n: p.start() for n, p in patchers.items()}
@@ -158,10 +165,29 @@ def mock_client():
             ((2026, 8, 7, 15, 41, 57), 6, "leakage_current", True),
         )
     ]
-    mocks["async_get_grid_parameters"].return_value = [
-        GridParameter("protection_series", 2.0, None, 32313),
-        GridParameter("overvoltage_single_protect_value", 268.8, "V", 32323),
-    ]
+    on_off = {"enable": "170", "prohibited": "85"}
+    levels = {"single": "0", "two_level": "1", "three_level": "2"}
+    params = {
+        PARAM_SYSTEM: [
+            Parameter("standby_time", 20.0, "s", 30091, PARAM_SYSTEM, 2, 0, 10, 900),
+            Parameter("pid_night_repair", 85.0, None, 30310, PARAM_SYSTEM, 5,
+                      options=on_off),
+            Parameter("over_frequency_drop_curve", 0.0, None, 31413, PARAM_SYSTEM,
+                      14, options={"cura_a": "0", "cura_b": "1"}),
+            Parameter("set_total_power", 0.0, "kWh", 30070, PARAM_SYSTEM, 1, 0,
+                      -200000000, 200000000),
+            Parameter("mystery_setting", 3.0, None, 39999, PARAM_SYSTEM, 99, 0, 0, 9),
+        ],
+        PARAM_PROTECTION: [
+            Parameter("protection_series", 1.0, None, 32313, PARAM_PROTECTION, 1,
+                      options=levels),
+            Parameter("overvoltage_single_protect_value", 268.8, "V", 32323,
+                      PARAM_PROTECTION, 7, 1, 240.2, 336.0, levels=[0, 1, 2]),
+            Parameter("overvoltage_level3_protect_time", 0.02, "s", 32380,
+                      PARAM_PROTECTION, 35, 2, 0.05, 14400.0, levels=[2, 3, 4]),
+        ],
+    }
+    mocks["async_get_parameters"].side_effect = lambda kind: params[kind]
     yield MagicMock(**mocks)
     for p in patchers.values():
         p.stop()

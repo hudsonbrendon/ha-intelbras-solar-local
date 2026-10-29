@@ -39,6 +39,7 @@ from .const import (
     DEVICE_INVERTER,
     DEVICE_PLANT,
     DOMAIN,
+    FAULT_TEXT,
     TREES_PER_KG_CO2,
     WORK_STATES,
 )
@@ -76,13 +77,16 @@ def _fault_time(event: FaultEvent) -> datetime | None:
 
 def _last_fault(c: IntelbrasSolarCoordinator) -> FaultEvent | None:
     """Most recent event that raised a fault (not the one that cleared it)."""
-    return next((e for e in c.fault_history if e.active), None)
+    return next((e for e in c.fault_history or [] if e.active), None)
 
 
-def _fault_attrs(event: FaultEvent) -> dict[str, Any]:
+def _fault_attrs(event: FaultEvent, c: IntelbrasSolarCoordinator) -> dict[str, Any]:
+    text = FAULT_TEXT.get(event.name)
+    portuguese = c.hass.config.language.startswith("pt")
     return {
         "time": _fault_time(event),
         "fault": event.name,
+        "description": (text[1] if portuguese else text[0]) if text else event.name,
         "code": event.code,
         "level": event.level,
         "raised": event.active,
@@ -350,10 +354,16 @@ SENSORS: tuple[IntelbrasSolarSensorEntityDescription, ...] = (
         icon="mdi:alert-circle-outline",
         state_class=MEASUREMENT,
         always_available=True,
-        coordinator_fn=lambda c: sum(e.active for e in c.fault_history),
+        coordinator_fn=lambda c: None
+        if c.fault_history is None
+        else sum(e.active for e in c.fault_history),
         attrs_fn=lambda c: {
-            "by_fault": dict(Counter(e.name for e in c.fault_history if e.active)),
-            "recent": [_fault_attrs(e) for e in c.fault_history[:RECENT_FAULTS]],
+            "by_fault": dict(
+                Counter(e.name for e in c.fault_history or [] if e.active)
+            ),
+            "recent": [
+                _fault_attrs(e, c) for e in (c.fault_history or [])[:RECENT_FAULTS]
+            ],
         },
     ),
     IntelbrasSolarSensorEntityDescription(
@@ -362,7 +372,19 @@ SENSORS: tuple[IntelbrasSolarSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.TIMESTAMP,
         always_available=True,
         coordinator_fn=lambda c: _last_fault(c) and _fault_time(_last_fault(c)),
-        attrs_fn=lambda c: _fault_attrs(_last_fault(c)) if _last_fault(c) else None,
+        attrs_fn=lambda c: _fault_attrs(_last_fault(c), c) if _last_fault(c) else None,
+    ),
+    IntelbrasSolarSensorEntityDescription(
+        key="rated_reactive_power",
+        translation_key="rated_reactive_power",
+        native_unit_of_measurement="var",
+        device_class=SensorDeviceClass.REACTIVE_POWER,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        coordinator_fn=lambda c: (
+            None
+            if c.inverter_info is None or c.inverter_info.rated_reactive_power is None
+            else round(c.inverter_info.rated_reactive_power * 1000)
+        ),
     ),
     IntelbrasSolarSensorEntityDescription(
         key="grid_protection",
@@ -419,6 +441,38 @@ SENSORS: tuple[IntelbrasSolarSensorEntityDescription, ...] = (
         entity_category=EntityCategory.DIAGNOSTIC,
         coordinator_fn=lambda c: (
             c.datalogger_info.cloud_server if c.datalogger_info else None
+        ),
+    ),
+    IntelbrasSolarSensorEntityDescription(
+        key="grid_code",
+        translation_key="grid_code",
+        device=DEVICE_DATALOGGER,
+        icon="mdi:transmission-tower",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        coordinator_fn=lambda c: (
+            c.datalogger_info.country if c.datalogger_info else None
+        ),
+    ),
+    IntelbrasSolarSensorEntityDescription(
+        key="hotspot_ssid",
+        translation_key="hotspot_ssid",
+        device=DEVICE_DATALOGGER,
+        icon="mdi:access-point",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        coordinator_fn=lambda c: (
+            c.datalogger_info.hotspot_ssid if c.datalogger_info else None
+        ),
+    ),
+    IntelbrasSolarSensorEntityDescription(
+        key="ntp_server",
+        translation_key="ntp_server",
+        device=DEVICE_DATALOGGER,
+        icon="mdi:clock-check-outline",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        coordinator_fn=lambda c: (
+            c.datalogger_info.ntp_server if c.datalogger_info else None
         ),
     ),
     IntelbrasSolarSensorEntityDescription(

@@ -222,6 +222,18 @@
       },
       "last_fault": {
         "name": "Última falha"
+      },
+      "grid_code": {
+        "name": "Código de rede"
+      },
+      "hotspot_ssid": {
+        "name": "SSID do hotspot"
+      },
+      "ntp_server": {
+        "name": "Servidor NTP"
+      },
+      "rated_reactive_power": {
+        "name": "Potência reativa nominal"
       }
     },
     "binary_sensor": {
@@ -242,6 +254,9 @@
       },
       "datalogger_ethernet": {
         "name": "Ethernet"
+      },
+      "iec104_server": {
+        "name": "Servidor IEC 104"
       }
     },
     "switch": {
@@ -250,16 +265,198 @@
       },
       "power_limit_enabled": {
         "name": "Limitação de potência"
+      },
+      "grid_voltage_rise_suppression": {
+        "name": "Supressão da elevação de tensão da rede"
+      },
+      "overfrequency_derating": {
+        "name": "Redução de potência em sobrefrequência"
+      },
+      "pid_recovery": {
+        "name": "Reparação PID noturna"
       }
     },
     "number": {
       "power_limit": {
         "name": "Limite de potência"
+      },
+      "apparent_power_limit": {
+        "name": "Limite da potência aparente"
+      },
+      "connecting_time": {
+        "name": "Intervalo de tempo de conexão"
+      },
+      "overfrequency_derating_f1": {
+        "name": "Reduçao de potência com sobrefrequência F1"
+      },
+      "overfrequency_derating_f2": {
+        "name": "Reduçao de potência com sobrefrequência F2"
+      },
+      "overfrequency_derating_f3": {
+        "name": "Reduçao de potência com sobrefrequência F3"
+      },
+      "overfrequency_derating_gradient": {
+        "name": "Gradiente de redução de potência em sobrefrequência"
+      },
+      "overfrequency_derating_p1": {
+        "name": "Reduçao de potência com sobrefrequência P1"
+      },
+      "overfrequency_derating_p2": {
+        "name": "Reduçao de potência com sobrefrequência P2"
+      },
+      "overfrequency_derating_p3": {
+        "name": "Reduçao de potência com sobrefrequência P3"
+      },
+      "overfrequency_derating_recovery_delay": {
+        "name": "Tempo de espera para a recuperação após a redução em sobrefrequência"
+      },
+      "overfrequency_derating_recovery_frequency": {
+        "name": "Ponto de recuperação de redução de potência em sobrefrequência"
+      },
+      "overfrequency_derating_recovery_gradient": {
+        "name": "Gradiente de recuperação de potência após a redução em sobrefrequência"
+      },
+      "overfrequency_derating_response_time": {
+        "name": "Tempo de resposta da redução à sobrefrequência"
+      },
+      "overfrequency_level_1_protection_value": {
+        "name": "Valor de proteção de nível 1 contra sobrefrequência"
+      },
+      "overfrequency_level_1_tripping_time": {
+        "name": "Tempo de proteção de nível 1 contra sobrefrequência"
+      },
+      "overfrequency_level_2_protection_value": {
+        "name": "Valor de proteção de nível 2 contra sobrefrequência"
+      },
+      "overfrequency_level_2_tripping_time": {
+        "name": "Tempo de proteção de nível 2 contra sobrefrequência"
+      },
+      "overfrequency_level_3_protection_value": {
+        "name": "Valor de proteção de nível 3 contra sobrefrequência"
+      },
+      "overfrequency_level_3_tripping_time": {
+        "name": "Tempo de proteção de nível 3 contra sobrefrequência"
+      },
+      "overfrequency_reconnection_frequency": {
+        "name": "Frequência de reconexão após sobrefrequência"
+      },
+      "overvoltage_level_1_protection_value": {
+        "name": "Valor de proteção de nível 1 contra sobretensão"
+      },
+      "overvoltage_level_1_tripping_time": {
+        "name": "Tempo de proteção de nível 1 contra sobretensão"
+      },
+      "overvoltage_level_2_protection_value": {
+        "name": "Valor de proteção de nível 2 contra sobretensão"
+      },
+      "overvoltage_level_2_tripping_time": {
+        "name": "Tempo de proteção de nível 2 contra sobretensão"
+      },
+      "overvoltage_level_3_protection_value": {
+        "name": "Valor de proteção de nível 3 contra sobretensão"
+      },
+      "overvoltage_level_3_tripping_time": {
+        "name": "Tempo de proteção de nível 3 contra sobretensão"
+      },
+      "overvoltage_reconnection_voltage": {
+        "name": "Tensão de reconexão após sobretensão"
+      },
+      "rated_active_power_limit": {
+        "name": "Limite de potência nominal ativa"
+      },
+      "reconnecting_time": {
+        "name": "Intervalo de tempo de reconexão"
+      },
+      "underfrequency_level_1_protection_value": {
+        "name": "Valor de proteção de nível 1 contra subfrequência"
+      },
+      "underfrequency_level_1_tripping_time": {
+        "name": "Tempo de proteção de nível 1 contra subfrequência"
+      },
+      "underfrequency_level_2_protection_value": {
+        "name": "Valor de proteção de nível 2 contra subfrequência"
+      },
+      "underfrequency_level_2_tripping_time": {
+        "name": "Tempo de proteção de nível 2 contra subfrequência"
+      },
+      "underfrequency_level_3_protection_value": {
+        "name": "Valor de proteção de nível 3 contra subfrequência"
+      },
+      "underfrequency_level_3_tripping_time": {
+        "name": "Tempo de proteção de nível 3 contra subfrequência"
+      },
+      "underfrequency_reconnection_frequency": {
+        "name": "Frequência de reconexão após subfrequência"
+      },
+      "undervoltage_level_1_protection_value": {
+        "name": "Valor de proteção de nível 1 contra subtensão"
+      },
+      "undervoltage_level_1_tripping_time": {
+        "name": "Tempo de proteção de nível 1 contra subtensão"
+      },
+      "undervoltage_level_2_protection_value": {
+        "name": "Valor de proteção de nível 2 contra subtensão"
+      },
+      "undervoltage_level_2_tripping_time": {
+        "name": "Tempo de proteção de nível 2 contra subtensão"
+      },
+      "undervoltage_level_3_protection_value": {
+        "name": "Valor de proteção de nível 3 contra subtensão"
+      },
+      "undervoltage_level_3_tripping_time": {
+        "name": "Tempo de proteção de nível 3 contra subtensão"
+      },
+      "undervoltage_reconnection_voltage": {
+        "name": "Tensão de reconexão após subtensão"
+      },
+      "power_factor_setting": {
+        "name": "Fator de potência configurado"
       }
     },
     "button": {
       "sync_clock": {
         "name": "Sincronizar relógio do inversor"
+      },
+      "reboot_datalogger": {
+        "name": "Reiniciar"
+      }
+    },
+    "select": {
+      "overfrequency_derating_curve": {
+        "name": "Curva",
+        "state": {
+          "cura_a": "Curva A",
+          "cura_b": "Curva B",
+          "cura_c": "Curva C"
+        }
+      },
+      "protection_level": {
+        "name": "Nível de proteção",
+        "state": {
+          "single": "Nível 1",
+          "two_level": "Nível 2",
+          "three_level": "Nível 3",
+          "four_level": "Nível 4",
+          "level5": "Nível 5"
+        }
+      },
+      "pv_connection_mode": {
+        "name": "Modo de conexão FV",
+        "state": {
+          "independent": "Independente",
+          "para": "Conexão paralela",
+          "partial_parallel_mode_xuiaxxyu": "Modo paralelo parcial"
+        }
+      },
+      "reactive_mode": {
+        "name": "Modo de potência reativa",
+        "state": {
+          "off": "Desligado",
+          "power_factor": "Fator de potência fixo",
+          "qt": "Potência reativa fixa (Qt)",
+          "q_p": "Curva Q(P)",
+          "q_u": "Curva Q(U)"
+        }
       }
     }
   },
@@ -269,6 +466,22 @@
     },
     "plant": {
       "name": "{name} Usina"
+    }
+  },
+  "services": {
+    "set_parameter": {
+      "name": "Definir parâmetro do inversor",
+      "description": "Grava qualquer parâmetro de sistema ou de proteção da rede do inversor, inclusive a compensação da geração total. Valores de proteção diferentes dos definidos pelo instalador podem tirar o inversor do código de rede.",
+      "fields": {
+        "parameter": {
+          "name": "Parâmetro",
+          "description": "Chave da biblioteca (por exemplo standby_time, set_total_power) ou registrador (por exemplo 30091). As entidades de parâmetro mostram o registrador como atributo."
+        },
+        "value": {
+          "name": "Valor",
+          "description": "Número para parâmetros numéricos, ou o nome da opção (enable, prohibited, cura_a...) para parâmetros com opções."
+        }
+      }
     }
   }
 }

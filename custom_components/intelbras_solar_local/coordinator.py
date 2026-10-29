@@ -13,13 +13,15 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
 from intelbras_solar_local import (
+    PARAM_PROTECTION,
+    PARAM_SYSTEM,
     DataloggerInfo,
     FaultEvent,
-    GridParameter,
     IntelbrasSolarClient,
     IntelbrasSolarError,
     InverterInfo,
     InverterStatus,
+    Parameter,
     WifiSignal,
 )
 
@@ -39,6 +41,9 @@ OFFLINE_AFTER_FAILURES = 3
 # settings and the fault history barely move; they refresh on this slower
 # cadence instead of every poll.
 SLOW_EXTRAS_INTERVAL = timedelta(minutes=10)
+# A slow refresh where something failed (the datalogger is often busy right
+# after a restart) is retried this soon instead of a full interval later.
+SLOW_EXTRAS_RETRY = timedelta(minutes=1)
 
 
 class IntelbrasSolarCoordinator(DataUpdateCoordinator[InverterStatus]):
@@ -59,9 +64,12 @@ class IntelbrasSolarCoordinator(DataUpdateCoordinator[InverterStatus]):
         self.client = client
         self.datalogger_info: DataloggerInfo | None = None
         self.wifi_signal: WifiSignal | None = None
-        self.grid_parameters: list[GridParameter] = []
+        self.grid_parameters: list[Parameter] = []
+        self.system_parameters: list[Parameter] = []
         self.inverter_info: InverterInfo | None = None
-        self.fault_history: list[FaultEvent] = []
+        # None until the history has been read once (unknown, not "no faults").
+        self.fault_history: list[FaultEvent] | None = None
+        self._extras_failed = False
         self.last_record: datetime | None = None
         # Plant settings, filled from the options in async_setup_entry.
         self.energy_price = 0.0
@@ -124,6 +132,7 @@ class IntelbrasSolarCoordinator(DataUpdateCoordinator[InverterStatus]):
 
     async def _async_refresh_slow_extras(self) -> None:
         """Best-effort refresh of the slow datalogger extras; never raises."""
+        self._extras_failed = False
         self.datalogger_info = await self._safe(
             self.client.async_get_datalogger_info(), self.datalogger_info
         )
@@ -131,7 +140,10 @@ class IntelbrasSolarCoordinator(DataUpdateCoordinator[InverterStatus]):
             self.client.async_get_inverter_info(), self.inverter_info
         )
         self.grid_parameters = await self._safe(
-            self.client.async_get_grid_parameters(), self.grid_parameters
+            self.client.async_get_parameters(PARAM_PROTECTION), self.grid_parameters
+        )
+        self.system_parameters = await self._safe(
+            self.client.async_get_parameters(PARAM_SYSTEM), self.system_parameters
         )
         self.fault_history = await self._safe(
             self.client.async_get_fault_history(), self.fault_history
@@ -140,6 +152,25 @@ class IntelbrasSolarCoordinator(DataUpdateCoordinator[InverterStatus]):
         self.wifi_signal = await self._safe(
             self.client.async_get_wifi_signal(), self.wifi_signal
         )
+        if self._extras_failed:
+            self._slow_extras_at = (
+                dt_util.utcnow() - SLOW_EXTRAS_INTERVAL + SLOW_EXTRAS_RETRY
+            )
+        self.async_update_listeners()
+
+    @property
+    def parameters(self) -> list[Parameter]:
+        """System and protection parameters, as last read."""
+        return self.system_parameters + self.grid_parameters
+
+    async def async_set_parameter(self, param: Parameter, value: float | str) -> None:
+        """Write a parameter, then re-read its group so entities show the result."""
+        await self.client.async_set_parameter(param, value)
+        fresh = await self.client.async_get_parameters(param.kind)
+        if param.kind == PARAM_SYSTEM:
+            self.system_parameters = fresh
+        else:
+            self.grid_parameters = fresh
         self.async_update_listeners()
 
     async def _safe(self, coro, default):
@@ -148,6 +179,7 @@ class IntelbrasSolarCoordinator(DataUpdateCoordinator[InverterStatus]):
             return await coro
         except IntelbrasSolarError as err:
             _LOGGER.debug("Datalogger extra fetch failed: %s", err)
+            self._extras_failed = True
             return default
 
     def async_set_written(self, **fields: Any) -> None:

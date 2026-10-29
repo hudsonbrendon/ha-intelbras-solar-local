@@ -1,12 +1,16 @@
 """The Intelbras Solar Local integration."""
 from __future__ import annotations
 
+import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT, Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.typing import ConfigType
 
-from intelbras_solar_local import IntelbrasSolarClient
+from intelbras_solar_local import IntelbrasSolarClient, IntelbrasSolarError
 
 from .const import (
     CONF_CO2_FACTOR,
@@ -24,13 +28,56 @@ from .const import (
 )
 from .coordinator import IntelbrasSolarCoordinator
 
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+SERVICE_SET_PARAMETER = "set_parameter"
+SET_PARAMETER_SCHEMA = vol.Schema(
+    {
+        # Library key (e.g. "standby_time") or register (e.g. "30091").
+        vol.Required("parameter"): cv.string,
+        vol.Required("value"): vol.Any(vol.Coerce(float), cv.string),
+    }
+)
+
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.BUTTON,
     Platform.NUMBER,
+    Platform.SELECT,
     Platform.SENSOR,
     Platform.SWITCH,
 ]
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Register the set_parameter action."""
+
+    async def _set_parameter(call: ServiceCall) -> None:
+        wanted = call.data["parameter"]
+        for coordinator in hass.data.get(DOMAIN, {}).values():
+            for param in coordinator.parameters:
+                if wanted in (param.key, str(param.register)):
+                    value = call.data["value"]
+                    if param.options:
+                        value = str(value)
+                    try:
+                        await coordinator.async_set_parameter(param, value)
+                    except ValueError as err:
+                        raise ServiceValidationError(str(err)) from err
+                    except IntelbrasSolarError as err:
+                        raise HomeAssistantError(
+                            f"Failed to set {param.key}: {err}"
+                        ) from err
+                    return
+        raise ServiceValidationError(
+            f"Unknown parameter {wanted!r}; the inverter parameters are read a few "
+            "seconds after start-up and only while the inverter is on"
+        )
+
+    hass.services.async_register(
+        DOMAIN, SERVICE_SET_PARAMETER, _set_parameter, schema=SET_PARAMETER_SCHEMA
+    )
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

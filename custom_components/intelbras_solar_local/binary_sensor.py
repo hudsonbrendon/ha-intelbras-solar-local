@@ -72,6 +72,17 @@ BINARY_SENSORS: tuple[IntelbrasSolarBinarySensorEntityDescription, ...] = (
         value_fn=lambda s: s.datalogger.cloud_connected if s.datalogger else None,
     ),
     IntelbrasSolarBinarySensorEntityDescription(
+        key="iec104_server",
+        translation_key="iec104_server",
+        device=DEVICE_DATALOGGER,
+        icon="mdi:server-network",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda s: None,
+        coordinator_fn=lambda c: (
+            c.datalogger_info.iec104_enabled if c.datalogger_info else None
+        ),
+    ),
+    IntelbrasSolarBinarySensorEntityDescription(
         key="datalogger_ethernet",
         translation_key="datalogger_ethernet",
         device=DEVICE_DATALOGGER,

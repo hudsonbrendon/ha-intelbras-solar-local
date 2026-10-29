@@ -35,7 +35,7 @@ async def test_inverter_firmware_efficiency_and_grid(hass, init_integration):
     assert dsp.attributes["cpld_version"] == "SUNSTONE-S_08011.01.01"
     assert hass.states.get(INV + "inverter_efficiency").state == "94.1"
     grid = hass.states.get(INV + "grid_protection_levels")
-    assert grid.state == "3"
+    assert grid.state == "2"
     assert grid.attributes["overvoltage_single_protect_value"] == 268.8
 
 
@@ -106,7 +106,7 @@ async def test_last_record_survives_night(hass, init_integration, mock_client):
 
 
 async def test_grid_levels_unknown_without_params(hass, init_integration, mock_client):
-    mock_client.async_get_grid_parameters.return_value = []
+    mock_client.async_get_parameters.side_effect = lambda kind: []
     await init_integration(status=None)
     assert hass.states.get(INV + "grid_protection_levels").state == "unknown"
     _ = InverterStatus
@@ -144,3 +144,20 @@ async def test_last_fault_unknown_without_history(hass, init_integration, mock_c
     await init_integration()
     assert hass.states.get(INV + "last_fault").state == "unknown"
     assert hass.states.get(INV + "recorded_faults").state == "0"
+
+
+async def test_unread_history_is_unknown_and_retried_soon(
+    hass, init_integration, mock_client
+):
+    from intelbras_solar_local import IntelbrasSolarConnectionError
+
+    mock_client.async_get_fault_history.side_effect = IntelbrasSolarConnectionError("x")
+    _, coordinator = await init_integration()
+    assert hass.states.get(INV + "recorded_faults").state == "unknown"
+
+    mock_client.async_get_fault_history.side_effect = None
+    soon = dt_util.utcnow() + coord_mod.SLOW_EXTRAS_RETRY + timedelta(seconds=1)
+    with _frozen(soon):
+        await coordinator.async_refresh()
+        await hass.async_block_till_done(wait_background_tasks=True)
+    assert hass.states.get(INV + "recorded_faults").state == "2"

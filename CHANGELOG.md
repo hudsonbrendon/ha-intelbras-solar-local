@@ -2,6 +2,48 @@
 
 All notable changes to this project are documented here.
 
+## [0.5.0]
+
+### Added
+- Every inverter parameter from the datalogger's web UI is now an entity: 20
+  system settings and 29 grid-protection settings. Each one becomes a number,
+  select or switch, with the official English and Portuguese names. They are
+  written through the datalogger, with no login.
+  - Enabled by default: connecting time, reconnecting time, PID recovery,
+    rated active power limit and apparent power limit.
+  - Disabled by default, because wrong values can take the inverter out of its
+    grid code:
+    - over-frequency derating (switch, F1–F3, P1–P3, curve, gradients, delays);
+    - grid voltage rise suppression;
+    - PV connection mode;
+    - protection level, and every over/under-voltage and frequency threshold
+      and trip time.
+  - Protection settings carry an `applies` attribute that is false for levels
+    above the active protection level.
+- `intelbras_solar_local.set_parameter` action: writes any parameter by key or
+  register, including the total yield adjustment. That one has no entity
+  because it rewrites the lifetime counter.
+- Power factor setting (number) and reactive power mode (select), from holding
+  registers 5018 and 5035. Both are disabled by default.
+- Datalogger *Reboot* button.
+- Datalogger grid code, hotspot SSID and NTP server sensors. The last two are
+  disabled by default.
+- *IEC 104 server* binary sensor. The datalogger exposes an unauthenticated
+  IEC 60870-5-104 server on port 2404, enabled here out of the box.
+- Inverter *Rated reactive power* sensor.
+- Fault attributes include the official fault description in Home Assistant's
+  language.
+
+### Fixed
+- The Wi-Fi signal sensor sometimes dropped 20–30 dB for one reading, because
+  it read the signal mid-scan. Fixed in `python-intelbras-solar-local` 0.4.0.
+- After a restart, *Recorded faults* showed 0, and the datalogger extras could
+  stay empty for 10 minutes when the first read failed. Unread data is now
+  unknown, and a failed refresh is retried after 1 minute.
+
+### Changed
+- Requires `python-intelbras-solar-local` 0.4.0.
+
 ## [0.4.3]
 
 ### Fixed

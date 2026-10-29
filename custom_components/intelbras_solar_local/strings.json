@@ -222,6 +222,18 @@
       },
       "last_fault": {
         "name": "Last fault"
+      },
+      "grid_code": {
+        "name": "Grid code"
+      },
+      "hotspot_ssid": {
+        "name": "Hotspot SSID"
+      },
+      "ntp_server": {
+        "name": "NTP server"
+      },
+      "rated_reactive_power": {
+        "name": "Rated reactive power"
       }
     },
     "binary_sensor": {
@@ -242,6 +254,9 @@
       },
       "datalogger_ethernet": {
         "name": "Ethernet"
+      },
+      "iec104_server": {
+        "name": "IEC 104 server"
       }
     },
     "switch": {
@@ -250,16 +265,198 @@
       },
       "power_limit_enabled": {
         "name": "Power limitation"
+      },
+      "grid_voltage_rise_suppression": {
+        "name": "Grid Voltage Rising Suppression"
+      },
+      "overfrequency_derating": {
+        "name": "Power Reduction at Overfrequency"
+      },
+      "pid_recovery": {
+        "name": "PID Recovery"
       }
     },
     "number": {
       "power_limit": {
         "name": "Power limit"
+      },
+      "apparent_power_limit": {
+        "name": "Apparent Power Limit"
+      },
+      "connecting_time": {
+        "name": "Connecting Time"
+      },
+      "overfrequency_derating_f1": {
+        "name": "Overfrequency Derating F1"
+      },
+      "overfrequency_derating_f2": {
+        "name": "Overfrequency Derating F2"
+      },
+      "overfrequency_derating_f3": {
+        "name": "Overfrequency Derating F3"
+      },
+      "overfrequency_derating_gradient": {
+        "name": "Over-frequency derating gradient"
+      },
+      "overfrequency_derating_p1": {
+        "name": "Overfrequency Derating P1"
+      },
+      "overfrequency_derating_p2": {
+        "name": "Overfrequency Derating P2"
+      },
+      "overfrequency_derating_p3": {
+        "name": "Overfrequency Derating P3"
+      },
+      "overfrequency_derating_recovery_delay": {
+        "name": "Over-frequency derating recovery delay"
+      },
+      "overfrequency_derating_recovery_frequency": {
+        "name": "Over-frequency derating recovery frequency"
+      },
+      "overfrequency_derating_recovery_gradient": {
+        "name": "Over-frequency derating recovery gradient"
+      },
+      "overfrequency_derating_response_time": {
+        "name": "Over-frequency derating response time"
+      },
+      "overfrequency_level_1_protection_value": {
+        "name": "Overfrequency Level-1 Protection Value"
+      },
+      "overfrequency_level_1_tripping_time": {
+        "name": "Overfrequency Level-1 Tripping Time"
+      },
+      "overfrequency_level_2_protection_value": {
+        "name": "Overfrequency Level-2 Protection Value"
+      },
+      "overfrequency_level_2_tripping_time": {
+        "name": "Overfrequency Level-2 Tripping Time"
+      },
+      "overfrequency_level_3_protection_value": {
+        "name": "Overfrequency Level-3 Protection Value"
+      },
+      "overfrequency_level_3_tripping_time": {
+        "name": "Overfrequency Level-3 Tripping Time"
+      },
+      "overfrequency_reconnection_frequency": {
+        "name": "Overfrequency reconnection frequency"
+      },
+      "overvoltage_level_1_protection_value": {
+        "name": "Overvoltage Level-1 Protection Value"
+      },
+      "overvoltage_level_1_tripping_time": {
+        "name": "Overvoltage Level-1 Tripping Time"
+      },
+      "overvoltage_level_2_protection_value": {
+        "name": "Overvoltage Level-2 Protection Value"
+      },
+      "overvoltage_level_2_tripping_time": {
+        "name": "Overvoltage Level-2 Tripping Time"
+      },
+      "overvoltage_level_3_protection_value": {
+        "name": "Overvoltage Level-3 Protection Value"
+      },
+      "overvoltage_level_3_tripping_time": {
+        "name": "Overvoltage Level-3 Tripping Time"
+      },
+      "overvoltage_reconnection_voltage": {
+        "name": "Overvoltage reconnection voltage"
+      },
+      "rated_active_power_limit": {
+        "name": "Rated Active Power Limit"
+      },
+      "reconnecting_time": {
+        "name": "Reconnecting Time"
+      },
+      "underfrequency_level_1_protection_value": {
+        "name": "Underfrequency Level-1 Protection Value"
+      },
+      "underfrequency_level_1_tripping_time": {
+        "name": "Underfrequency Level-1 Tripping Time"
+      },
+      "underfrequency_level_2_protection_value": {
+        "name": "Underfrequency Level-2 Protection Value"
+      },
+      "underfrequency_level_2_tripping_time": {
+        "name": "Underfrequency Level-2 Tripping Time"
+      },
+      "underfrequency_level_3_protection_value": {
+        "name": "Underfrequency Level-3 Protection Value"
+      },
+      "underfrequency_level_3_tripping_time": {
+        "name": "Underfrequency Level-3 Tripping Time"
+      },
+      "underfrequency_reconnection_frequency": {
+        "name": "Underfrequency reconnection frequency"
+      },
+      "undervoltage_level_1_protection_value": {
+        "name": "Undervoltage  Level-1 Protection Value"
+      },
+      "undervoltage_level_1_tripping_time": {
+        "name": "Undervoltage Level-1 Tripping Time"
+      },
+      "undervoltage_level_2_protection_value": {
+        "name": "Undervoltage Level-2 Protection Value"
+      },
+      "undervoltage_level_2_tripping_time": {
+        "name": "Undervoltage Level-2 Tripping Time"
+      },
+      "undervoltage_level_3_protection_value": {
+        "name": "Undervoltage Level-3 Protection Value"
+      },
+      "undervoltage_level_3_tripping_time": {
+        "name": "Undervoltage Level-3 Tripping Time"
+      },
+      "undervoltage_reconnection_voltage": {
+        "name": "Undervoltage reconnection voltage"
+      },
+      "power_factor_setting": {
+        "name": "Power factor setting"
       }
     },
     "button": {
       "sync_clock": {
         "name": "Sync inverter clock"
+      },
+      "reboot_datalogger": {
+        "name": "Reboot"
+      }
+    },
+    "select": {
+      "overfrequency_derating_curve": {
+        "name": "Over-frequency derating curve",
+        "state": {
+          "cura_a": "Curve A",
+          "cura_b": "Curve B",
+          "cura_c": "Curve C"
+        }
+      },
+      "protection_level": {
+        "name": "Protection Level",
+        "state": {
+          "single": "Single Level",
+          "two_level": "Second Level",
+          "three_level": "Third Level",
+          "four_level": "Fourth Level",
+          "level5": "Fifth Level"
+        }
+      },
+      "pv_connection_mode": {
+        "name": "PV Connection Mode",
+        "state": {
+          "independent": "Independent",
+          "para": "Parallel Connection",
+          "partial_parallel_mode_xuiaxxyu": "Partial Parallel Mode"
+        }
+      },
+      "reactive_mode": {
+        "name": "Reactive power mode",
+        "state": {
+          "off": "Off",
+          "power_factor": "Fixed power factor",
+          "qt": "Fixed reactive power (Qt)",
+          "q_p": "Q(P) curve",
+          "q_u": "Q(U) curve"
+        }
       }
     }
   },
@@ -269,6 +466,22 @@
     },
     "plant": {
       "name": "{name} Plant"
+    }
+  },
+  "services": {
+    "set_parameter": {
+      "name": "Set inverter parameter",
+      "description": "Writes any system or grid-protection parameter of the inverter, including the total yield adjustment. Grid-protection values outside the installer's settings can take the inverter out of its grid code.",
+      "fields": {
+        "parameter": {
+          "name": "Parameter",
+          "description": "Library key (for example standby_time, set_total_power) or register (for example 30091). The parameter entities show the register as an attribute."
+        },
+        "value": {
+          "name": "Value",
+          "description": "Number for numeric parameters, or an option name (enable, prohibited, cura_a...) for option parameters."
+        }
+      }
     }
   }
 }

@@ -1,0 +1,12 @@
+set_parameter:
+  fields:
+    parameter:
+      required: true
+      example: standby_time
+      selector:
+        text:
+    value:
+      required: true
+      example: 30
+      selector:
+        text:
