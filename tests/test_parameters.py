@@ -1,9 +1,10 @@
 """Tests for the inverter parameter entities, controls and set_parameter."""
+
 from __future__ import annotations
 
-import pytest
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import entity_registry as er
+import pytest
 
 from custom_components.intelbras_solar_local.const import DOMAIN
 
@@ -49,8 +50,10 @@ async def test_parameter_entities_created(hass, init_integration):
 async def test_write_number_rereads_group(hass, init_integration, mock_client):
     await init_integration()
     await hass.services.async_call(
-        "number", "set_value",
-        {"entity_id": N + "connecting_time", "value": 30}, blocking=True,
+        "number",
+        "set_value",
+        {"entity_id": N + "connecting_time", "value": 30},
+        blocking=True,
     )
     param, value = mock_client.async_set_parameter.await_args.args
     assert (param.key, value) == ("standby_time", 30.0)
@@ -71,8 +74,10 @@ async def test_write_error_surfaces(hass, init_integration, mock_client):
     mock_client.async_set_parameter.side_effect = ValueError("outside range")
     with pytest.raises(HomeAssistantError):
         await hass.services.async_call(
-            "number", "set_value",
-            {"entity_id": N + "connecting_time", "value": 5}, blocking=True,
+            "number",
+            "set_value",
+            {"entity_id": N + "connecting_time", "value": 5},
+            blocking=True,
         )
 
 
@@ -91,14 +96,18 @@ async def test_protection_number_range_and_applies(hass, init_integration):
 async def test_set_parameter_action(hass, init_integration, mock_client):
     await init_integration()
     await hass.services.async_call(
-        DOMAIN, "set_parameter",
-        {"parameter": "30070", "value": 15400}, blocking=True,
+        DOMAIN,
+        "set_parameter",
+        {"parameter": "30070", "value": 15400},
+        blocking=True,
     )
     param, value = mock_client.async_set_parameter.await_args.args
     assert (param.key, value) == ("set_total_power", 15400.0)
     await hass.services.async_call(
-        DOMAIN, "set_parameter",
-        {"parameter": "over_frequency_drop_curve", "value": "cura_b"}, blocking=True,
+        DOMAIN,
+        "set_parameter",
+        {"parameter": "over_frequency_drop_curve", "value": "cura_b"},
+        blocking=True,
     )
     assert mock_client.async_set_parameter.await_args.args[1] == "cura_b"
     with pytest.raises(ServiceValidationError):
@@ -110,8 +119,10 @@ async def test_set_parameter_action(hass, init_integration, mock_client):
 async def test_reboot_button(hass, init_integration, mock_client):
     await init_integration()
     await hass.services.async_call(
-        "button", "press",
-        {"entity_id": "button.intelbras_solar_local_datalogger_reboot"}, blocking=True,
+        "button",
+        "press",
+        {"entity_id": "button.intelbras_solar_local_datalogger_reboot"},
+        blocking=True,
     )
     mock_client.async_reboot_datalogger.assert_awaited_once()
 
@@ -126,12 +137,16 @@ async def test_power_factor_and_reactive_mode(
     assert hass.states.get(N + "power_factor_setting").state == "1.0"
     assert hass.states.get(SEL + "reactive_power_mode").state == "power_factor"
     await hass.services.async_call(
-        "number", "set_value",
-        {"entity_id": N + "power_factor_setting", "value": -0.95}, blocking=True,
+        "number",
+        "set_value",
+        {"entity_id": N + "power_factor_setting", "value": -0.95},
+        blocking=True,
     )
     mock_client.async_set_power_factor.assert_awaited_with(-0.95)
     await hass.services.async_call(
-        "select", "select_option",
-        {"entity_id": SEL + "reactive_power_mode", "option": "off"}, blocking=True,
+        "select",
+        "select_option",
+        {"entity_id": SEL + "reactive_power_mode", "option": "off"},
+        blocking=True,
     )
     mock_client.async_set_reactive_mode.assert_awaited_with("off")

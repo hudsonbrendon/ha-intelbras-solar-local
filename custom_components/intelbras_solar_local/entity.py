@@ -1,4 +1,5 @@
 """Base entity for the Intelbras Solar Local integration."""
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -9,7 +10,7 @@ from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity, EntityCategory
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from intelbras_solar_local import IntelbrasSolarError, Parameter
@@ -33,7 +34,7 @@ def device_info(
 
     The inverter keeps the serial-only identifier it had before the split, so
     existing entities stay on it. It is not linked to the datalogger:
-    ``via_device`` is deprecated and ``via_device_id`` is missing before 2025.
+    ``via_device`` is deprecated.
     """
     serial = entry.unique_id or entry.entry_id
     url = f"http://{coordinator.client.host}"
@@ -111,7 +112,7 @@ def parameter_platform(param: Parameter) -> str:
 def async_add_parameter_entities(
     coordinator: IntelbrasSolarCoordinator,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
     platform: str,
     factory: Callable[[IntelbrasSolarCoordinator, ConfigEntry, Parameter], Entity],
 ) -> None:
@@ -188,8 +189,11 @@ class IntelbrasSolarParameterEntity(IntelbrasSolarEntity):
         attrs: dict[str, Any] = {"register": param.register}
         if param.levels is not None:
             level = next(
-                (p.value for p in self.coordinator.parameters
-                 if p.key == "protection_series"),
+                (
+                    p.value
+                    for p in self.coordinator.parameters
+                    if p.key == "protection_series"
+                ),
                 None,
             )
             # Settings of protection levels above the active one are ignored.

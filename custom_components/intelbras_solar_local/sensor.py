@@ -1,4 +1,5 @@
 """Sensors for the Intelbras Solar Local integration."""
+
 from __future__ import annotations
 
 from collections import Counter
@@ -14,7 +15,6 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
@@ -28,17 +28,17 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
 
 from intelbras_solar_local import FaultEvent, InverterStatus
 
+from . import IntelbrasSolarConfigEntry
 from .const import (
     COAL_KG_PER_KWH,
     DEVICE_DATALOGGER,
     DEVICE_INVERTER,
     DEVICE_PLANT,
-    DOMAIN,
     FAULT_TEXT,
     TREES_PER_KG_CO2,
     WORK_STATES,
@@ -49,9 +49,13 @@ from .entity import IntelbrasSolarEntity
 MEASUREMENT = SensorStateClass.MEASUREMENT
 TOTAL_INCREASING = SensorStateClass.TOTAL_INCREASING
 
+PARALLEL_UPDATES = 0
+
 
 @dataclass(frozen=True, kw_only=True)
 class IntelbrasSolarSensorEntityDescription(SensorEntityDescription):
+    """Describes a sensor read from the inverter or the coordinator."""
+
     value_fn: Callable[[InverterStatus], Any] | None = None
     coordinator_fn: Callable[[IntelbrasSolarCoordinator], Any] | None = None
     attrs_fn: Callable[[IntelbrasSolarCoordinator], dict[str, Any]] | None = None
@@ -63,7 +67,9 @@ class IntelbrasSolarSensorEntityDescription(SensorEntityDescription):
 RECENT_FAULTS = 10
 
 
-def _version(c: IntelbrasSolarCoordinator, attr: str, fallback: str | None):
+def _version(
+    c: IntelbrasSolarCoordinator, attr: str, fallback: str | None
+) -> str | None:
     """Firmware version from the web UI, else the Modbus family string."""
     return getattr(c.inverter_info, attr, None) or fallback
 
@@ -150,7 +156,9 @@ def _mppt(index: int, attr: str) -> Callable[[InverterStatus], float | None]:
     return _value
 
 
-def _power(key, fn, **kw) -> IntelbrasSolarSensorEntityDescription:
+def _power(
+    key: str, fn: Callable[[InverterStatus], Any], **kw: Any
+) -> IntelbrasSolarSensorEntityDescription:
     return IntelbrasSolarSensorEntityDescription(
         key=key,
         translation_key=key,
@@ -162,7 +170,9 @@ def _power(key, fn, **kw) -> IntelbrasSolarSensorEntityDescription:
     )
 
 
-def _energy(key, fn) -> IntelbrasSolarSensorEntityDescription:
+def _energy(
+    key: str, fn: Callable[[InverterStatus], Any]
+) -> IntelbrasSolarSensorEntityDescription:
     return IntelbrasSolarSensorEntityDescription(
         key=key,
         translation_key=key,
@@ -173,7 +183,9 @@ def _energy(key, fn) -> IntelbrasSolarSensorEntityDescription:
     )
 
 
-def _voltage(key, fn, **kw) -> IntelbrasSolarSensorEntityDescription:
+def _voltage(
+    key: str, fn: Callable[[InverterStatus], Any], **kw: Any
+) -> IntelbrasSolarSensorEntityDescription:
     return IntelbrasSolarSensorEntityDescription(
         key=key,
         translation_key=key,
@@ -185,7 +197,9 @@ def _voltage(key, fn, **kw) -> IntelbrasSolarSensorEntityDescription:
     )
 
 
-def _current(key, fn) -> IntelbrasSolarSensorEntityDescription:
+def _current(
+    key: str, fn: Callable[[InverterStatus], Any]
+) -> IntelbrasSolarSensorEntityDescription:
     return IntelbrasSolarSensorEntityDescription(
         key=key,
         translation_key=key,
@@ -354,9 +368,9 @@ SENSORS: tuple[IntelbrasSolarSensorEntityDescription, ...] = (
         icon="mdi:alert-circle-outline",
         state_class=MEASUREMENT,
         always_available=True,
-        coordinator_fn=lambda c: None
-        if c.fault_history is None
-        else sum(e.active for e in c.fault_history),
+        coordinator_fn=lambda c: (
+            None if c.fault_history is None else sum(e.active for e in c.fault_history)
+        ),
         attrs_fn=lambda c: {
             "by_fault": dict(
                 Counter(e.name for e in c.fault_history or [] if e.active)
@@ -554,9 +568,7 @@ SENSORS: tuple[IntelbrasSolarSensorEntityDescription, ...] = (
         state_class=MEASUREMENT,
         icon="mdi:gauge",
         coordinator_fn=lambda c: _round(
-            None
-            if (v := _per_kwp(c, c.data.power_ac)) is None
-            else v / 1000 * 100,
+            None if (v := _per_kwp(c, c.data.power_ac)) is None else v / 1000 * 100,
             1,
         ),
     ),
@@ -599,10 +611,11 @@ PEAK_POWER = IntelbrasSolarSensorEntityDescription(
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    entry: IntelbrasSolarConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    """Set up the sensors."""
+    coordinator = entry.runtime_data
     entities: list[SensorEntity] = [
         IntelbrasSolarSensor(coordinator, entry, description) for description in SENSORS
     ]
@@ -615,7 +628,12 @@ class IntelbrasSolarSensor(IntelbrasSolarEntity, SensorEntity):
 
     entity_description: IntelbrasSolarSensorEntityDescription
 
-    def __init__(self, coordinator, entry, description) -> None:
+    def __init__(
+        self,
+        coordinator: IntelbrasSolarCoordinator,
+        entry: IntelbrasSolarConfigEntry,
+        description: IntelbrasSolarSensorEntityDescription,
+    ) -> None:
         super().__init__(coordinator, entry, description.key, description.device)
         self.entity_description = description
 
@@ -644,7 +662,12 @@ class IntelbrasSolarPeakPower(IntelbrasSolarEntity, RestoreSensor):
 
     entity_description: IntelbrasSolarSensorEntityDescription
 
-    def __init__(self, coordinator, entry, description) -> None:
+    def __init__(
+        self,
+        coordinator: IntelbrasSolarCoordinator,
+        entry: IntelbrasSolarConfigEntry,
+        description: IntelbrasSolarSensorEntityDescription,
+    ) -> None:
         super().__init__(coordinator, entry, description.key, description.device)
         self.entity_description = description
         self._peak: int | None = None

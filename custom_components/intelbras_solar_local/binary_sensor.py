@@ -1,4 +1,5 @@
 """Binary sensors for the Intelbras Solar Local integration."""
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -10,20 +11,24 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from intelbras_solar_local import InverterStatus
 
-from .const import DEVICE_DATALOGGER, DEVICE_INVERTER, DOMAIN
+from . import IntelbrasSolarConfigEntry
+from .const import DEVICE_DATALOGGER, DEVICE_INVERTER
 from .coordinator import IntelbrasSolarCoordinator
 from .entity import IntelbrasSolarEntity
+
+PARALLEL_UPDATES = 0
 
 
 @dataclass(frozen=True, kw_only=True)
 class IntelbrasSolarBinarySensorEntityDescription(BinarySensorEntityDescription):
+    """Describes a boolean state of the inverter or datalogger."""
+
     value_fn: Callable[[InverterStatus], bool | None]
     attrs_fn: Callable[[InverterStatus], dict[str, Any]] | None = None
     always_available: bool = False
@@ -99,10 +104,11 @@ BINARY_SENSORS: tuple[IntelbrasSolarBinarySensorEntityDescription, ...] = (
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    entry: IntelbrasSolarConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    """Set up the binary sensors."""
+    coordinator = entry.runtime_data
     async_add_entities(
         IntelbrasSolarBinarySensor(coordinator, entry, description)
         for description in BINARY_SENSORS
@@ -114,7 +120,12 @@ class IntelbrasSolarBinarySensor(IntelbrasSolarEntity, BinarySensorEntity):
 
     entity_description: IntelbrasSolarBinarySensorEntityDescription
 
-    def __init__(self, coordinator, entry, description) -> None:
+    def __init__(
+        self,
+        coordinator: IntelbrasSolarCoordinator,
+        entry: IntelbrasSolarConfigEntry,
+        description: IntelbrasSolarBinarySensorEntityDescription,
+    ) -> None:
         super().__init__(coordinator, entry, description.key, description.device)
         self.entity_description = description
 

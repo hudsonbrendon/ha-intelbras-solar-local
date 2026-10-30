@@ -1,4 +1,5 @@
 """Tests for integration setup/unload."""
+
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntryState
@@ -15,14 +16,16 @@ async def test_setup_and_unload(hass, init_integration, mock_client):
     assert entry.state is ConfigEntryState.LOADED
     assert coordinator.data.online is True
 
-    device = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, SERIAL)})
+    device = dr.async_get(hass).async_get_device_by_identifier(
+        (DOMAIN, SERIAL), entry.entry_id
+    )
     assert device.model == "IONS-5K M5"
     assert device.serial_number == SERIAL
     assert device.configuration_url == "http://192.168.31.17"
 
     assert await hass.config_entries.async_unload(entry.entry_id)
     await hass.async_block_till_done()
-    assert entry.entry_id not in hass.data[DOMAIN]
+    assert entry.state is ConfigEntryState.NOT_LOADED
     mock_client.async_close.assert_awaited()
 
 
@@ -34,7 +37,9 @@ async def test_setup_while_inverter_asleep(hass, init_integration):
 
 async def test_options_change_reloads(hass, init_integration, mock_client):
     entry, _ = await init_integration()
-    hass.config_entries.async_update_entry(entry, options={"scan_interval": 30})
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    await hass.config_entries.options.async_configure(
+        result["flow_id"], {"scan_interval": 30}
+    )
     await hass.async_block_till_done()
-    coordinator = hass.data[DOMAIN][entry.entry_id]
-    assert coordinator.update_interval.total_seconds() == 30
+    assert entry.runtime_data.update_interval.total_seconds() == 30

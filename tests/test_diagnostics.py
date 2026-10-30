@@ -1,4 +1,5 @@
 """Tests for diagnostics."""
+
 from __future__ import annotations
 
 from custom_components.intelbras_solar_local.diagnostics import (

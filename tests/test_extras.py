@@ -1,4 +1,5 @@
 """Tests for the datalogger extras, firmware and grid protection sensors."""
+
 from __future__ import annotations
 
 from datetime import timedelta
@@ -54,9 +55,7 @@ async def test_slow_extras_are_throttled(hass, init_integration, mock_client):
     assert coordinator.wifi_signal.rssi == -50
 
 
-async def test_poll_does_not_wait_for_slow_extras(
-    hass, init_integration, mock_client
-):
+async def test_poll_does_not_wait_for_slow_extras(hass, init_integration, mock_client):
     import asyncio
 
     _, coordinator = await init_integration()

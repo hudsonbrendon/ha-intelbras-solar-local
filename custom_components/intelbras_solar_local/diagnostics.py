@@ -1,23 +1,23 @@
 """Diagnostics support for the Intelbras Solar Local integration."""
+
 from __future__ import annotations
 
 from dataclasses import asdict
 from typing import Any
 
 from homeassistant.components.diagnostics import async_redact_data
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
-from .coordinator import IntelbrasSolarCoordinator
+from . import IntelbrasSolarConfigEntry
 
 TO_REDACT = {"serial"}
 
 
 async def async_get_config_entry_diagnostics(
-    hass: HomeAssistant, entry: ConfigEntry
+    hass: HomeAssistant, entry: IntelbrasSolarConfigEntry
 ) -> dict[str, Any]:
-    coordinator: IntelbrasSolarCoordinator = hass.data[DOMAIN][entry.entry_id]
+    """Return diagnostics for a config entry."""
+    coordinator = entry.runtime_data
     data = coordinator.data
     return {
         "entry": {
@@ -35,9 +35,7 @@ async def async_get_config_entry_diagnostics(
         if coordinator.wifi_signal
         else None,
         "grid_parameters": [asdict(p) for p in coordinator.grid_parameters],
-        "inverter_info": async_redact_data(
-            asdict(coordinator.inverter_info), TO_REDACT
-        )
+        "inverter_info": async_redact_data(asdict(coordinator.inverter_info), TO_REDACT)
         if coordinator.inverter_info
         else None,
         "fault_history": [asdict(e) for e in (coordinator.fault_history or [])[:50]],

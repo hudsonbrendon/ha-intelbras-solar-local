@@ -1,4 +1,5 @@
 """Tests for the Intelbras Solar Local button."""
+
 from __future__ import annotations
 
 from datetime import datetime

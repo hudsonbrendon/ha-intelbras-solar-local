@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## [0.5.2] - Unreleased
+
+### Changed
+- Modernized for Home Assistant 2026.10 on Python 3.14: the coordinator lives
+  in `entry.runtime_data`, the options flow reloads through
+  `OptionsFlowWithReload`, platforms use `AddConfigEntryEntitiesCallback` and
+  declare `PARALLEL_UPDATES`, and the `set_parameter` action moved to
+  `services.py`. Behaviour is unchanged.
+- Minimum Home Assistant version is now 2025.8.0.
+- Added `quality_scale.yaml`, the `loggers` manifest key and the ruff
+  configuration used by the other integrations; CI tests on Python 3.14.
+
 ## [0.5.1]
 
 ### Fixed

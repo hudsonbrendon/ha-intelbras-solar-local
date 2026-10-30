@@ -1,10 +1,11 @@
 """Tests for the Intelbras Solar Local switches."""
+
 from __future__ import annotations
 
-import pytest
 from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.exceptions import HomeAssistantError
 from intelbras_solar_local import IntelbrasSolarConnectionError
+import pytest
 
 P = "switch.intelbras_solar_local_"
 
