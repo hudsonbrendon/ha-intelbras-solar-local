@@ -1,20 +1,26 @@
 """Config flow for the Intelbras Solar Local integration."""
+
 from __future__ import annotations
 
 from typing import Any
 
-import voluptuous as vol
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
     ConfigFlowResult,
-    OptionsFlow,
+    OptionsFlowWithReload,
 )
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
+import voluptuous as vol
 
-from intelbras_solar_local import IntelbrasSolarClient, IntelbrasSolarError
+from intelbras_solar_local import (
+    IntelbrasSolarClient,
+    IntelbrasSolarError,
+    InverterStatus,
+)
 
 from .const import (
     CONF_CO2_FACTOR,
@@ -52,7 +58,9 @@ class IntelbrasSolarConfigFlow(ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         self._discovered: dict[str, Any] = {}
 
-    async def _async_probe(self, host: str, port: int, unit: int):
+    async def _async_probe(
+        self, host: str, port: int, unit: int
+    ) -> InverterStatus | None:
         """Return the InverterStatus read over Modbus, or None if unreachable."""
         client = IntelbrasSolarClient(
             host, port, unit, session=async_get_clientsession(self.hass)
@@ -86,7 +94,9 @@ class IntelbrasSolarConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=USER_SCHEMA, errors=errors
         )
 
-    async def async_step_zeroconf(self, discovery_info) -> ConfigFlowResult:
+    async def async_step_zeroconf(
+        self, discovery_info: ZeroconfServiceInfo
+    ) -> ConfigFlowResult:
         """Handle a WiNet-S announcing ``WiNet-WebServer._http._tcp`` (board=WiNet-S).
 
         The mDNS record only carries the datalogger serial, so the inverter
@@ -132,21 +142,18 @@ class IntelbrasSolarConfigFlow(ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> IntelbrasSolarOptionsFlow:
-        return IntelbrasSolarOptionsFlow(config_entry)
+        return IntelbrasSolarOptionsFlow()
 
 
-class IntelbrasSolarOptionsFlow(OptionsFlow):
+class IntelbrasSolarOptionsFlow(OptionsFlowWithReload):
     """Handle Intelbras Solar Local options (scan interval, plant settings)."""
-
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        self._entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
-        opts = self._entry.options
+        opts = self.config_entry.options
         schema = vol.Schema(
             {
                 vol.Optional(

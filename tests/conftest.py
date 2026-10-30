@@ -1,10 +1,10 @@
 """Shared fixtures for the Intelbras Solar Local tests."""
+
 from __future__ import annotations
 
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
-import pytest
 from intelbras_solar_local import (
     PARAM_PROTECTION,
     PARAM_SYSTEM,
@@ -17,6 +17,7 @@ from intelbras_solar_local import (
     Parameter,
     WifiSignal,
 )
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.intelbras_solar_local.const import DOMAIN
@@ -40,12 +41,15 @@ def auto_enable_custom_integrations(enable_custom_integrations):
 def mock_clientsession():
     """Replace async_get_clientsession with a fake to avoid lingering threads."""
     session = MagicMock()
-    with patch(
-        "custom_components.intelbras_solar_local.async_get_clientsession",
-        return_value=session,
-    ), patch(
-        "custom_components.intelbras_solar_local.config_flow.async_get_clientsession",
-        return_value=session,
+    with (
+        patch(
+            "custom_components.intelbras_solar_local.async_get_clientsession",
+            return_value=session,
+        ),
+        patch(
+            "custom_components.intelbras_solar_local.config_flow.async_get_clientsession",
+            return_value=session,
+        ),
     ):
         yield session
 
@@ -170,21 +174,65 @@ def mock_client():
     params = {
         PARAM_SYSTEM: [
             Parameter("standby_time", 20.0, "s", 30091, PARAM_SYSTEM, 2, 0, 10, 900),
-            Parameter("pid_night_repair", 85.0, None, 30310, PARAM_SYSTEM, 5,
-                      options=on_off),
-            Parameter("over_frequency_drop_curve", 0.0, None, 31413, PARAM_SYSTEM,
-                      14, options={"cura_a": "0", "cura_b": "1"}),
-            Parameter("set_total_power", 0.0, "kWh", 30070, PARAM_SYSTEM, 1, 0,
-                      -200000000, 200000000),
+            Parameter(
+                "pid_night_repair", 85.0, None, 30310, PARAM_SYSTEM, 5, options=on_off
+            ),
+            Parameter(
+                "over_frequency_drop_curve",
+                0.0,
+                None,
+                31413,
+                PARAM_SYSTEM,
+                14,
+                options={"cura_a": "0", "cura_b": "1"},
+            ),
+            Parameter(
+                "set_total_power",
+                0.0,
+                "kWh",
+                30070,
+                PARAM_SYSTEM,
+                1,
+                0,
+                -200000000,
+                200000000,
+            ),
             Parameter("mystery_setting", 3.0, None, 39999, PARAM_SYSTEM, 99, 0, 0, 9),
         ],
         PARAM_PROTECTION: [
-            Parameter("protection_series", 1.0, None, 32313, PARAM_PROTECTION, 1,
-                      options=levels),
-            Parameter("overvoltage_single_protect_value", 268.8, "V", 32323,
-                      PARAM_PROTECTION, 7, 1, 240.2, 336.0, levels=[0, 1, 2]),
-            Parameter("overvoltage_level3_protect_time", 0.02, "s", 32380,
-                      PARAM_PROTECTION, 35, 2, 0.05, 14400.0, levels=[2, 3, 4]),
+            Parameter(
+                "protection_series",
+                1.0,
+                None,
+                32313,
+                PARAM_PROTECTION,
+                1,
+                options=levels,
+            ),
+            Parameter(
+                "overvoltage_single_protect_value",
+                268.8,
+                "V",
+                32323,
+                PARAM_PROTECTION,
+                7,
+                1,
+                240.2,
+                336.0,
+                levels=[0, 1, 2],
+            ),
+            Parameter(
+                "overvoltage_level3_protect_time",
+                0.02,
+                "s",
+                32380,
+                PARAM_PROTECTION,
+                35,
+                2,
+                0.05,
+                14400.0,
+                levels=[2, 3, 4],
+            ),
         ],
     }
     mocks["async_get_parameters"].side_effect = lambda kind: params[kind]
@@ -212,6 +260,6 @@ def init_integration(hass, make_status, mock_client):
         entry.add_to_hass(hass)
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done(wait_background_tasks=True)
-        return entry, hass.data[DOMAIN][entry.entry_id]
+        return entry, entry.runtime_data
 
     return _init

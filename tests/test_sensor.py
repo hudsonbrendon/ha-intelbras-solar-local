@@ -1,4 +1,5 @@
 """Tests for the Intelbras Solar Local sensors."""
+
 from __future__ import annotations
 
 from homeassistant.const import STATE_UNAVAILABLE

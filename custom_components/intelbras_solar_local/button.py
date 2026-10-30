@@ -1,26 +1,30 @@
 """Buttons for the Intelbras Solar Local integration."""
+
 from __future__ import annotations
 
 from homeassistant.components.button import ButtonDeviceClass, ButtonEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
 
 from intelbras_solar_local import IntelbrasSolarError
 
-from .const import DEVICE_DATALOGGER, DOMAIN
+from . import IntelbrasSolarConfigEntry
+from .const import DEVICE_DATALOGGER
 from .entity import IntelbrasSolarEntity
+
+PARALLEL_UPDATES = 1
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    entry: IntelbrasSolarConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    """Set up the buttons."""
+    coordinator = entry.runtime_data
     async_add_entities(
         [
             IntelbrasSolarSyncClock(coordinator, entry, "sync_clock"),

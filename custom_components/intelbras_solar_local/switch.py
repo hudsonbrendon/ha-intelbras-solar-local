@@ -2,6 +2,7 @@
 
 They write holding registers on the inverter, so they ship disabled.
 """
+
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
@@ -9,11 +10,10 @@ from dataclasses import dataclass
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from intelbras_solar_local import (
     IntelbrasSolarClient,
@@ -21,16 +21,21 @@ from intelbras_solar_local import (
     InverterStatus,
 )
 
-from .const import DOMAIN
+from . import IntelbrasSolarConfigEntry
+from .coordinator import IntelbrasSolarCoordinator
 from .entity import (
     IntelbrasSolarEntity,
     IntelbrasSolarParameterEntity,
     async_add_parameter_entities,
 )
 
+PARALLEL_UPDATES = 1
+
 
 @dataclass(frozen=True, kw_only=True)
 class IntelbrasSolarSwitchEntityDescription(SwitchEntityDescription):
+    """Describes an on/off holding register of the inverter."""
+
     field: str
     value_fn: Callable[[InverterStatus], bool | None]
     set_fn: Callable[[IntelbrasSolarClient, bool], Awaitable[None]]
@@ -62,10 +67,11 @@ SWITCHES: tuple[IntelbrasSolarSwitchEntityDescription, ...] = (
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    entry: IntelbrasSolarConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    """Set up the switches."""
+    coordinator = entry.runtime_data
     async_add_entities(
         IntelbrasSolarSwitch(coordinator, entry, description)
         for description in SWITCHES
@@ -80,7 +86,12 @@ class IntelbrasSolarSwitch(IntelbrasSolarEntity, SwitchEntity):
 
     entity_description: IntelbrasSolarSwitchEntityDescription
 
-    def __init__(self, coordinator, entry, description) -> None:
+    def __init__(
+        self,
+        coordinator: IntelbrasSolarCoordinator,
+        entry: IntelbrasSolarConfigEntry,
+        description: IntelbrasSolarSwitchEntityDescription,
+    ) -> None:
         super().__init__(coordinator, entry, description.key)
         self.entity_description = description
 

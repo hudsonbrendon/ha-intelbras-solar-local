@@ -1,4 +1,5 @@
 """Tests for the config and options flows."""
+
 from __future__ import annotations
 
 from homeassistant import config_entries
@@ -156,8 +157,8 @@ async def test_zeroconf_unreachable_inverter_aborts(hass, mock_client):
 def test_zeroconf_matcher_targets_winet_only():
     """The real WiNet-S announces WiNet-WebServer._http._tcp with board=WiNet-S;
     plain _http._tcp devices must not raise a discovery card."""
-    import json
     from fnmatch import fnmatch
+    import json
     from pathlib import Path
 
     manifest = json.loads(

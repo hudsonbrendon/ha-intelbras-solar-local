@@ -1,14 +1,21 @@
 {
   "domain": "intelbras_solar_local",
   "name": "Intelbras Solar Local",
-  "codeowners": ["@hudsonbrendon"],
+  "codeowners": [
+    "@hudsonbrendon"
+  ],
   "config_flow": true,
   "documentation": "https://github.com/hudsonbrendon/ha-intelbras-solar-local",
   "integration_type": "device",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/hudsonbrendon/ha-intelbras-solar-local/issues",
-  "requirements": ["python-intelbras-solar-local==0.4.0"],
-  "version": "0.5.1",
+  "loggers": [
+    "intelbras_solar_local"
+  ],
+  "requirements": [
+    "python-intelbras-solar-local==0.4.0"
+  ],
+  "version": "0.5.2",
   "zeroconf": [
     {
       "type": "_http._tcp.local.",

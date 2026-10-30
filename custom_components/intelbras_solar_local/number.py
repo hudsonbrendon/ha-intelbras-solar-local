@@ -1,30 +1,34 @@
 """Number entities for the Intelbras Solar Local integration."""
+
 from __future__ import annotations
 
 from homeassistant.components.number import NumberEntity, NumberMode
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from intelbras_solar_local import IntelbrasSolarError
+from intelbras_solar_local import IntelbrasSolarError, Parameter
 
-from .const import DOMAIN
+from . import IntelbrasSolarConfigEntry
+from .coordinator import IntelbrasSolarCoordinator
 from .entity import (
     IntelbrasSolarEntity,
     IntelbrasSolarParameterEntity,
     async_add_parameter_entities,
 )
 
+PARALLEL_UPDATES = 1
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    entry: IntelbrasSolarConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    """Set up the number entities."""
+    coordinator = entry.runtime_data
     async_add_entities(
         [
             IntelbrasSolarPowerLimit(coordinator, entry, "power_limit"),
@@ -90,7 +94,12 @@ class IntelbrasSolarParameterNumber(IntelbrasSolarParameterEntity, NumberEntity)
 
     _attr_mode = NumberMode.BOX
 
-    def __init__(self, coordinator, entry, param) -> None:
+    def __init__(
+        self,
+        coordinator: IntelbrasSolarCoordinator,
+        entry: IntelbrasSolarConfigEntry,
+        param: Parameter,
+    ) -> None:
         super().__init__(coordinator, entry, param)
         self._attr_native_step = 10**-param.accuracy if param.accuracy else 1
         self._attr_native_unit_of_measurement = param.unit

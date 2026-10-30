@@ -1,13 +1,16 @@
 """DataUpdateCoordinator for the Intelbras Solar Local integration."""
+
 from __future__ import annotations
 
 import asyncio
-import logging
-import time
+from collections.abc import Awaitable
 from dataclasses import replace
 from datetime import datetime, timedelta
+import logging
+import time
 from typing import Any
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
@@ -52,12 +55,14 @@ class IntelbrasSolarCoordinator(DataUpdateCoordinator[InverterStatus]):
     def __init__(
         self,
         hass: HomeAssistant,
+        entry: ConfigEntry,
         client: IntelbrasSolarClient,
         scan_interval: int,
     ) -> None:
         super().__init__(
             hass,
             _LOGGER,
+            config_entry=entry,
             name=DOMAIN,
             update_interval=timedelta(seconds=scan_interval),
         )
@@ -173,7 +178,7 @@ class IntelbrasSolarCoordinator(DataUpdateCoordinator[InverterStatus]):
             self.grid_parameters = fresh
         self.async_update_listeners()
 
-    async def _safe(self, coro, default):
+    async def _safe[T](self, coro: Awaitable[T], default: T) -> T:
         """Await coro, keeping the previous value on a datalogger error."""
         try:
             return await coro

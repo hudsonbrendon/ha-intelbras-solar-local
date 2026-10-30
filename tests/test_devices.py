@@ -1,8 +1,8 @@
 """Tests for the inverter / datalogger / plant device split."""
+
 from __future__ import annotations
 
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 
 from custom_components.intelbras_solar_local.const import DOMAIN
 
@@ -10,13 +10,15 @@ from .conftest import SERIAL
 
 
 async def test_three_devices(hass, init_integration):
-    await init_integration()
+    entry, _ = await init_integration()
     devices = dr.async_get(hass)
-    inverter = devices.async_get_device(identifiers={(DOMAIN, SERIAL)})
-    datalogger = devices.async_get_device(
-        identifiers={(DOMAIN, f"{SERIAL}_datalogger")}
+    inverter = devices.async_get_device_by_identifier((DOMAIN, SERIAL), entry.entry_id)
+    datalogger = devices.async_get_device_by_identifier(
+        (DOMAIN, f"{SERIAL}_datalogger"), entry.entry_id
     )
-    plant = devices.async_get_device(identifiers={(DOMAIN, f"{SERIAL}_plant")})
+    plant = devices.async_get_device_by_identifier(
+        (DOMAIN, f"{SERIAL}_plant"), entry.entry_id
+    )
 
     assert inverter.sw_version == "SUNSTONE-S_01011.01.39"
     assert datalogger.name == "Intelbras Solar Local Datalogger"

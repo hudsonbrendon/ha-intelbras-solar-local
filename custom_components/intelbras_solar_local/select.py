@@ -1,29 +1,34 @@
 """Select entities for the Intelbras Solar Local integration."""
+
 from __future__ import annotations
 
 from homeassistant.components.select import SelectEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from intelbras_solar_local import IntelbrasSolarError
+from intelbras_solar_local import IntelbrasSolarError, Parameter
 
-from .const import DOMAIN, REACTIVE_MODE_OPTIONS
+from . import IntelbrasSolarConfigEntry
+from .const import REACTIVE_MODE_OPTIONS
+from .coordinator import IntelbrasSolarCoordinator
 from .entity import (
     IntelbrasSolarEntity,
     IntelbrasSolarParameterEntity,
     async_add_parameter_entities,
 )
 
+PARALLEL_UPDATES = 1
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    entry: IntelbrasSolarConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    """Set up the select entities."""
+    coordinator = entry.runtime_data
     async_add_entities(
         [IntelbrasSolarReactiveMode(coordinator, entry, "reactive_mode")]
     )
@@ -56,7 +61,12 @@ class IntelbrasSolarReactiveMode(IntelbrasSolarEntity, SelectEntity):
 class IntelbrasSolarParameterSelect(IntelbrasSolarParameterEntity, SelectEntity):
     """An inverter parameter with a fixed list of options."""
 
-    def __init__(self, coordinator, entry, param) -> None:
+    def __init__(
+        self,
+        coordinator: IntelbrasSolarCoordinator,
+        entry: IntelbrasSolarConfigEntry,
+        param: Parameter,
+    ) -> None:
         super().__init__(coordinator, entry, param)
         self._attr_options = list(param.options)
 

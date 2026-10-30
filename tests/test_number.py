@@ -1,9 +1,10 @@
 """Tests for the Intelbras Solar Local number entity."""
+
 from __future__ import annotations
 
-import pytest
 from homeassistant.exceptions import HomeAssistantError
 from intelbras_solar_local import IntelbrasSolarProtocolError
+import pytest
 
 ENTITY = "number.intelbras_solar_local_power_limit"
 
