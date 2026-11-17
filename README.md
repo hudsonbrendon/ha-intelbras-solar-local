@@ -1,15 +1,17 @@
 <p align="center">
-  <img src="assets/intelbras.png" alt="Intelbras" width="360">
+  <img src="custom_components/intelbras_solar_local/brand/logo@2x.png" alt="Intelbras Solar Local" height="128">
 </p>
 
 # Intelbras Solar Local for Home Assistant
 
 [![Tests](https://github.com/hudsonbrendon/ha-intelbras-solar-local/actions/workflows/tests.yml/badge.svg)](https://github.com/hudsonbrendon/ha-intelbras-solar-local/actions/workflows/tests.yml)
 [![Hassfest](https://github.com/hudsonbrendon/ha-intelbras-solar-local/actions/workflows/hassfest.yml/badge.svg)](https://github.com/hudsonbrendon/ha-intelbras-solar-local/actions/workflows/hassfest.yml)
-[![Validate](https://github.com/hudsonbrendon/ha-intelbras-solar-local/actions/workflows/validate.yml/badge.svg)](https://github.com/hudsonbrendon/ha-intelbras-solar-local/actions/workflows/validate.yml)
+[![HACS](https://github.com/hudsonbrendon/ha-intelbras-solar-local/actions/workflows/validate.yml/badge.svg)](https://github.com/hudsonbrendon/ha-intelbras-solar-local/actions/workflows/validate.yml)
+[![Release](https://img.shields.io/github/v/release/hudsonbrendon/ha-intelbras-solar-local?sort=semver)](https://github.com/hudsonbrendon/ha-intelbras-solar-local/releases)
+[![Downloads](https://img.shields.io/github/downloads/hudsonbrendon/ha-intelbras-solar-local/total)](https://github.com/hudsonbrendon/ha-intelbras-solar-local/releases)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/)
-[![Release](https://img.shields.io/github/v/release/hudsonbrendon/ha-intelbras-solar-local)](https://github.com/hudsonbrendon/ha-intelbras-solar-local/releases)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.12.0%2B-18BCF2?logo=homeassistant&logoColor=white)](https://www.home-assistant.io/)
+[![License](https://img.shields.io/github/license/hudsonbrendon/ha-intelbras-solar-local)](LICENSE)
 
 This integration monitors and controls an **Intelbras solar inverter** straight from your local network. It reads
 power, energy, per-string (MPPT) data, grid values and inverter health, refreshing every 15 seconds. It can also start
