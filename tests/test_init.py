@@ -15,7 +15,9 @@ async def test_setup_and_unload(hass, init_integration, mock_client):
     assert entry.state is ConfigEntryState.LOADED
     assert coordinator.data.online is True
 
-    device = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, SERIAL)})
+    device = dr.async_get(hass).async_get_device_by_identifier(
+        (DOMAIN, SERIAL), entry.entry_id
+    )
     assert device.model == "IONS-5K M5"
     assert device.serial_number == SERIAL
     assert device.configuration_url == "http://192.168.31.17"
